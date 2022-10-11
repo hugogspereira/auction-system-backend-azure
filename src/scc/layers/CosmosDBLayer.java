@@ -14,7 +14,7 @@ import scc.dao.UserDAO;
 
 public class CosmosDBLayer {
 	private static final String CONNECTION_URL = "https://scc22234204.documents.azure.com:443/";
-	private static final String DB_KEY = "xfCPprZp1yI5R8qTXR2JlJiELkWJyOcKGfVjsdyi62ONZJoFzY9J9j8lsCVpFLkYU5frwxqnlkSjUhQlQiAvBA==";
+	private static final String DB_KEY = "????????==";
 	private static final String DB_NAME = "scc2223db";
 	
 	private static CosmosDBLayer instance;
@@ -51,7 +51,6 @@ public class CosmosDBLayer {
 			return;
 		db = client.getDatabase(DB_NAME);
 		users = db.getContainer("users");
-		
 	}
 
 	public CosmosItemResponse<Object> delUserById(String id) {
@@ -65,11 +64,11 @@ public class CosmosDBLayer {
 		return users.deleteItem(user, new CosmosItemRequestOptions());
 	}
 	
-	public CosmosItemResponse<scc.data.UserDAO> putUser(scc.data.UserDAO user) {
+	public CosmosItemResponse<UserDAO> putUser(UserDAO user) {
 		init();
 		return users.createItem(user);
 	}
-	
+
 	public CosmosPagedIterable<UserDAO> getUserById(String id) {
 		init();
 		return users.queryItems("SELECT * FROM users WHERE users.id=\"" + id + "\"", new CosmosQueryRequestOptions(), UserDAO.class);
@@ -83,6 +82,5 @@ public class CosmosDBLayer {
 	public void close() {
 		client.close();
 	}
-	
-	
+
 }
