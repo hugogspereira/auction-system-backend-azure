@@ -1,7 +1,5 @@
 package scc.model;
 
-import java.util.Arrays;
-
 /**
  * Represents a User, as returned to the clients
  */
@@ -11,15 +9,13 @@ public class User {
 	private String name;
 	private String pwd;
 	private String photoId;
-	private String[] channelIds;
 
-	public User(String nickname, String name, String pwd, String photoId, String[] channelIds) {
+	public User(String nickname, String name, String pwd, String photoId) {
 		super();
 		this.nickname = nickname;
 		this.name = name;
 		this.pwd = pwd;
 		this.photoId = photoId;
-		this.channelIds = channelIds;
 	}
 
 	public String getNickname() {
@@ -46,16 +42,9 @@ public class User {
 	public void setPhotoId(String photoId) {
 		this.photoId = photoId;
 	}
-	public String[] getChannelIds() {
-		return channelIds == null ? new String[0] : channelIds ;
-	}
-	public void setChannelIds(String[] channelIds) {
-		this.channelIds = channelIds;
-	}
 	@Override
 	public String toString() {
-		return "User [nickname=" + nickname + ", name=" + name + ", pwd=" + pwd + ", photoId=" + photoId + ", channelIds="
-				+ Arrays.toString(channelIds) + "]";
+		return "User [nickname=" + nickname + ", name=" + name + ", pwd=" + pwd + ", photoId=" + photoId + "]";
 	}
 
 }

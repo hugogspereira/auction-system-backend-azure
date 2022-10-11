@@ -60,7 +60,32 @@
       <groupId>org.jboss.resteasy</groupId>  
       <artifactId>resteasy-servlet-initializer</artifactId>  
       <version>6.1.0.Final</version> 
-    </dependency> 
+    </dependency>
+    <dependency>
+      <groupId>com.azure</groupId>
+      <artifactId>azure-storage-blob</artifactId>
+      <version>12.19.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.azure</groupId>
+      <artifactId>azure-cosmos</artifactId>
+      <version>4.37.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.12.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>2.0.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.19.0</version>
+    </dependency>
   </dependencies>  
   <build> 
     <sourceDirectory>src</sourceDirectory>  

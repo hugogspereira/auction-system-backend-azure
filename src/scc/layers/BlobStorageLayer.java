@@ -32,9 +32,9 @@ public class BlobStorageLayer {
             return instance;
         }
 
-        public void upload(String nickname, byte[] data) {
+        public void upload(String photoId, byte[] data) {
             // Get client to blob
-            BlobClient blob = blobContainerClient.getBlobClient(nickname);
+            BlobClient blob = blobContainerClient.getBlobClient(photoId);
             // Upload contents from BinaryData (check documentation for other alternatives)
             blob.upload(BinaryData.fromBytes(data));
             /*
@@ -43,9 +43,9 @@ public class BlobStorageLayer {
             */
         }
 
-        public byte[] download(String nickname) {
+        public byte[] download(String photoId) {
             // Get client to blob
-            BlobClient blob = blobContainerClient.getBlobClient(nickname);
+            BlobClient blob = blobContainerClient.getBlobClient(photoId);
             // Download contents to BinaryData (check documentation for other alternatives)
             BinaryData data = blob.downloadContent();
             /*
@@ -55,5 +55,14 @@ public class BlobStorageLayer {
             */
 
             return data.toBytes();
+        }
+
+        public boolean existsBlob(String photoId) {
+            BlobClient blob = blobContainerClient.getBlobClient(photoId);
+            /*
+            DEBUG:
+            System.out.println( "Blob exists : " + blob.exists());
+            */
+            return blob.exists();
         }
     }
