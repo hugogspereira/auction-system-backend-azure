@@ -10,6 +10,7 @@ import com.azure.cosmos.models.CosmosItemResponse;
 import com.azure.cosmos.models.CosmosQueryRequestOptions;
 import com.azure.cosmos.models.PartitionKey;
 import com.azure.cosmos.util.CosmosPagedIterable;
+import scc.dao.AuctionDAO;
 import scc.dao.UserDAO;
 
 public class CosmosDBLayer {
@@ -41,7 +42,9 @@ public class CosmosDBLayer {
 	private CosmosClient client;
 	private CosmosDatabase db;
 	private CosmosContainer users;
-	
+
+	private CosmosContainer auctions;
+
 	public CosmosDBLayer(CosmosClient client) {
 		this.client = client;
 	}
@@ -51,6 +54,8 @@ public class CosmosDBLayer {
 			return;
 		db = client.getDatabase(DB_NAME);
 		users = db.getContainer("users");
+		auctions = db.getContainer("auctions");
+
 	}
 
 	public CosmosItemResponse<Object> delUserById(String id) {
@@ -77,6 +82,17 @@ public class CosmosDBLayer {
 	public CosmosPagedIterable<UserDAO> getUsers() {
 		init();
 		return users.queryItems("SELECT * FROM users ", new CosmosQueryRequestOptions(), UserDAO.class);
+	}
+
+	// Auctions
+	public CosmosItemResponse<AuctionDAO> putAuction(AuctionDAO auction) {
+		init();
+		return auctions.createItem(auction);
+	}
+
+	public CosmosPagedIterable<AuctionDAO> getAuctionById(String id) {
+		init();
+		return auctions.queryItems("SELECT * FROM auctions WHERE auctions.id=\"" + id + "\"", new CosmosQueryRequestOptions(), AuctionDAO.class);
 	}
 
 	public void close() {
