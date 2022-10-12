@@ -1,11 +1,8 @@
 package scc.srv;
 
+import scc.layers.BlobStorageLayer;
 import scc.utils.Hash;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -22,7 +19,7 @@ import jakarta.ws.rs.core.MediaType;
 @Path("/media")
 public class MediaResource
 {
-	Map<String,byte[]> map = new HashMap<String,byte[]>();
+	BlobStorageLayer blob = BlobStorageLayer.getInstance();
 
 	/**
 	 * Post a new image.The id of the image is its hash.
@@ -32,9 +29,9 @@ public class MediaResource
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
 	@Produces(MediaType.APPLICATION_JSON)
 	public String upload(byte[] contents) {
-		String key = Hash.of(contents);
-		map.put( key, contents);
-		return key;
+		String id = Hash.of(contents);
+		blob.upload(id, contents);
+		return id;
 	}
 
 	/**
@@ -45,8 +42,11 @@ public class MediaResource
 	@Path("/{id}")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	public byte[] download(@PathParam("id") String id) {
-		//throw new ServiceUnavailableException();
-		return null;
+		try {
+			return blob.download(id);
+		} catch (NotFoundException e) {
+			throw new NotFoundException("Image not found");
+		}
 	}
 
 	/**
@@ -56,6 +56,6 @@ public class MediaResource
 	@Path("/")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<String> list() {
-		return new ArrayList<String>( map.keySet());
+		return blob.list();
 	}
 }

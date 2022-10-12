@@ -6,6 +6,8 @@ import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobContainerClientBuilder;
 import com.azure.storage.blob.models.BlobItem;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BlobStorageLayer {
@@ -36,7 +38,9 @@ public class BlobStorageLayer {
             // Get client to blob
             BlobClient blob = blobContainerClient.getBlobClient(photoId);
             // Upload contents from BinaryData (check documentation for other alternatives)
-            blob.upload(BinaryData.fromBytes(data));
+            if(!blob.exists()) {
+                blob.upload(BinaryData.fromBytes(data));
+            }
             /*
             DEBUG:
             System.out.println( "File uploaded : " + filename);
@@ -47,6 +51,9 @@ public class BlobStorageLayer {
             // Get client to blob
             BlobClient blob = blobContainerClient.getBlobClient(photoId);
             // Download contents to BinaryData (check documentation for other alternatives)
+            if(!blob.exists()) {
+                throw new WebApplicationException(Response.Status.NOT_FOUND);
+            }
             BinaryData data = blob.downloadContent();
             /*
             DEBUG:
@@ -64,5 +71,13 @@ public class BlobStorageLayer {
             System.out.println( "Blob exists : " + blob.exists());
             */
             return blob.exists();
+        }
+
+        public List<String> list(){
+            List<String> list = new ArrayList<>();
+            for (BlobItem image : blobContainerClient.listBlobs()) {
+                list.add(image.getName());
+            }
+            return list;
         }
     }
