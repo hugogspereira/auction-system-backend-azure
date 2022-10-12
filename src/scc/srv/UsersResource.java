@@ -13,8 +13,10 @@ import scc.model.User;
 
 import java.util.Iterator;
 
-@Path("/user")
+@Path(UsersResource.PATH)
 public class UsersResource {
+
+    public static final String PATH = "/user";
 
     private final CosmosDBLayer cosmosDBLayer;
     private final BlobStorageLayer blobStorageLayer;

@@ -10,10 +10,10 @@ public class AuctionDAO {
 
     private String _rid;
     private String _ts;
-    private int id;
+    private String id;
     private String title;
     private String description;
-    private String imageId;
+    private String photoId;
     private String ownerNickname;
     private String endTime;             //type?
     private float minPrice;
@@ -24,17 +24,17 @@ public class AuctionDAO {
     }
 
     public AuctionDAO(Auction a) {
-        this(a.getId(), a.getTitle(), a.getDescription(), a.getImageId(), a.getOwnerNickname(), a.getEndTime(), a.getMinPrice(),
+        this(a.getId(), a.getTitle(), a.getDescription(), a.getPhotoId(), a.getOwnerNickname(), a.getEndTime(), a.getMinPrice(),
         a.getWinnerNickname(), a.getStatus());
     }
 
-    public AuctionDAO(int id, String title, String description, String imageId, String ownerNickname, String endTime,
+    public AuctionDAO(String id, String title, String description, String photoId, String ownerNickname, String endTime,
                       float minPrice, String winnerNickname, AuctionStatus status) {
         super();
         this.id = id;
         this.title = title;
         this.description = description;
-        this.imageId = imageId;
+        this.photoId = photoId;
         this.ownerNickname = ownerNickname;
         this.endTime = endTime;
         this.minPrice = minPrice;
@@ -54,10 +54,10 @@ public class AuctionDAO {
     public void set_ts(String _ts) {
         this._ts = _ts;
     }
-    public int getId() {
+    public String getId() {
         return id;
     }
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
     public String getTitle() {
@@ -72,11 +72,11 @@ public class AuctionDAO {
     public void setDescription(String description) {
         this.description = description;
     }
-    public String getImageId() {
-        return imageId;
+    public String getPhotoId() {
+        return photoId;
     }
-    public void setImageId(String imageId) {
-        this.imageId = imageId;
+    public void setPhotoId(String imageId) {
+        this.photoId = imageId;
     }
     public String getOwnerNickname() {
         return ownerNickname;
@@ -110,7 +110,7 @@ public class AuctionDAO {
     }
 
     public Auction toAuction() {
-        return new Auction(id, title, description, imageId, ownerNickname, endTime, minPrice, winnerNickname, status);
+        return new Auction(id, title, description, photoId, ownerNickname, endTime, minPrice, winnerNickname, status);
     }
 
     @Override
@@ -121,7 +121,7 @@ public class AuctionDAO {
                 ", id=" + id +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
-                ", imageId='" + imageId + '\'' +
+                ", photoId='" + photoId + '\'' +
                 ", ownerNickname='" + ownerNickname + '\'' +
                 ", endTime='" + endTime + '\'' +
                 ", minPrice=" + minPrice +

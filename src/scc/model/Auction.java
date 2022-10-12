@@ -4,22 +4,22 @@ import scc.utils.AuctionStatus;
 
 public class Auction {
 
-    private int id;
+    private String id;
     private String title;
     private String description;
-    private String imageId;
+    private String photoId;
     private String ownerNickname;
-    private String endTime;             //type?
+    private String endTime;             //TODO - type?
     private float minPrice;
     private String winnerNickname;
     private AuctionStatus status;
 
-    public Auction(int id, String title, String description, String imageId, String ownerNickname, String endTime,
+    public Auction(String id, String title, String description, String photoId, String ownerNickname, String endTime,
                    float minPrice, String winnerNickname, AuctionStatus status) {
         this.id = id;
         this.title = title;
         this.description = description;
-        this.imageId = imageId;
+        this.photoId = photoId;
         this.ownerNickname = ownerNickname;
         this.endTime = endTime;
         this.minPrice = minPrice;
@@ -27,11 +27,11 @@ public class Auction {
         this.status = status;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -51,12 +51,12 @@ public class Auction {
         this.description = description;
     }
 
-    public String getImageId() {
-        return imageId;
+    public String getPhotoId() {
+        return photoId;
     }
 
-    public void setImageId(String imageId) {
-        this.imageId = imageId;
+    public void setPhotoId(String imageId) {
+        this.photoId = imageId;
     }
 
     public String getOwnerNickname() {

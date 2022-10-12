@@ -95,6 +95,12 @@ public class CosmosDBLayer {
 		return auctions.queryItems("SELECT * FROM auctions WHERE auctions.id=\"" + id + "\"", new CosmosQueryRequestOptions(), AuctionDAO.class);
 	}
 
+	public CosmosItemResponse<Object> delAuctionById(String id) {
+		init();
+		PartitionKey key = new PartitionKey(id);
+		return auctions.deleteItem(id, key, new CosmosItemRequestOptions());
+	}
+
 	public void close() {
 		client.close();
 	}
