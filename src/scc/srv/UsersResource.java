@@ -1,5 +1,6 @@
 package scc.srv;
 
+import com.azure.cosmos.CosmosException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -27,50 +28,58 @@ public class UsersResource {
     @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public String createUser(User user) {  // return String ?
-        if(user == null || user.getNickname() == null || user.getPhotoId() == null || blobStorageLayer.existsBlob(user.getPhotoId())) {
+    public User createUser(User user) {
+        if(user == null || user.getNickname() == null || user.getPhotoId() == null) {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
-        // Create User
-        CosmosItemResponse<UserDAO> response = cosmosDBLayer.putUser(new UserDAO(user));
-        UserDAO userDao = response.getItem();
-        if(userDao == null) {
-            throw new WebApplicationException(response.getStatusCode());
+        else if(!blobStorageLayer.existsBlob(user.getPhotoId())) {
+            throw new WebApplicationException(Response.Status.NOT_FOUND); // ?
         }
-        else {
-            return userDao.getNickname();
+        // Create User
+        try {
+            cosmosDBLayer.putUser(new UserDAO(user));
+            return user;
+        }
+        catch (CosmosException e) {
+            throw new WebApplicationException(e.getStatusCode());
         }
     }
 
     @DELETE
     @Path("/{nickname}")
     @Produces(MediaType.APPLICATION_JSON)
-    public User deleteUser(@PathParam("nickname") String nickname, @QueryParam("password") String password) { // return User ?
+    public User deleteUser(@PathParam("nickname") String nickname, @QueryParam("password") String password) {
         // TODO: After a user is deleted, auctions and bids from the user appear as been performed by a default “Deleted User” user.
 
         if(nickname == null || password == null) {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
         // Get User
-        CosmosPagedIterable<UserDAO> response1 = cosmosDBLayer.getUserById(nickname);
-        Iterator<UserDAO> it = response1.stream().iterator();
         UserDAO userDao = null;
-        if(it.hasNext()) {
-            userDao = it.next();
+        try {
+            CosmosPagedIterable<UserDAO> response1 = cosmosDBLayer.getUserById(nickname);
+            Iterator<UserDAO> it = response1.stream().iterator();
+            if(it.hasNext()) {
+                userDao = it.next();
+            }
         }
-
+        catch (CosmosException e) {
+            throw new WebApplicationException(e.getStatusCode());
+        }
+        /* Needed ??? Maybe not */
         if(userDao == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         else if(userDao.getPwd().equals(password)) {
             // Delete User
-            CosmosItemResponse<Object> response2 = cosmosDBLayer.delUserById(nickname);
-            Object obj = response2.getItem();
-            if(obj == null) {
-                throw new WebApplicationException(response2.getStatusCode());
+            try {
+                CosmosItemResponse<Object> response2 = cosmosDBLayer.delUserById(nickname);
+                UserDAO deletedUser = (UserDAO) response2.getItem();
+                return new User(deletedUser.getNickname(), deletedUser.getName(), deletedUser.getPwd(), deletedUser.getPhotoId());
             }
-            UserDAO deletedUser =  (UserDAO) obj;
-            return new User(deletedUser.getNickname(), deletedUser.getName(), deletedUser.getPwd(), deletedUser.getPhotoId());
+            catch (CosmosException e) {
+                throw new WebApplicationException(e.getStatusCode());
+            }
         }
         else {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
@@ -78,38 +87,41 @@ public class UsersResource {
 
     }
 
-
     @PUT
     @Path("/{nickname}")
     @Consumes(MediaType.APPLICATION_JSON)
     public void updateUser(@PathParam("nickname") String nickname, @QueryParam("password") String password, User user) { // void  ?
-        if(nickname == null || password == null || user == null) {
+        if(nickname == null || password == null || user == null || !nickname.equals(user.getNickname())) {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
-        // Get User TODO: (To see if the password is the same, this will need to be optimized by auth mechanisms!)
-        CosmosPagedIterable<UserDAO> response1 = cosmosDBLayer.getUserById(nickname);
-        Iterator<UserDAO> it = response1.stream().iterator();
+        // Get User
         UserDAO userDao = null;
-        if(it.hasNext()) {
-            userDao = it.next();
+        try {
+            CosmosPagedIterable<UserDAO> response1 = cosmosDBLayer.getUserById(nickname);
+            Iterator<UserDAO> it = response1.stream().iterator();
+            if(it.hasNext()) {
+                userDao = it.next();
+            }
         }
-
+        catch (CosmosException e) {
+            throw new WebApplicationException(e.getStatusCode());
+        }
+        /* Needed ??? Maybe not */
         if(userDao == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
-        else if(!(userDao.getPwd().equals(password)) || (blobStorageLayer.existsBlob(user.getPhotoId()) && !user.getPhotoId().equals(userDao.getPhotoId()))) {
+        else if(!(userDao.getPwd().equals(password))) {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
-        // Delete User TODO: Need to be changed, because document says that when deleting a user all the other things happen, so it is needed to distinguish that events
-        CosmosItemResponse<Object> response2 = cosmosDBLayer.delUserById(nickname);
-        Object obj = response2.getItem();
-        if(obj == null) {
-            throw new WebApplicationException(response2.getStatusCode());
-        }
+        // Delete User
+        // TODO: Need to be changed, because document says that when deleting a user all the other things happen, so it is needed to distinguish that events
         // Create User
-        CosmosItemResponse<UserDAO> response3 = cosmosDBLayer.putUser(new UserDAO(user));
-        if(response3.getItem() == null) {
-            throw new WebApplicationException(response3.getStatusCode());
+        try {
+            cosmosDBLayer.delUserById(nickname);
+            cosmosDBLayer.putUser(new UserDAO(user));
+        }
+        catch (CosmosException e) {
+            throw new WebApplicationException(e.getStatusCode());
         }
     }
 }
