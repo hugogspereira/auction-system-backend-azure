@@ -59,11 +59,7 @@ public class UsersResource {
         // Get User
         UserDAO userDao = null;
         try {
-            CosmosPagedIterable<UserDAO> response1 = cosmosDBLayer.getUserById(nickname);
-            Iterator<UserDAO> it = response1.stream().iterator();
-            if(it.hasNext()) {
-                userDao = it.next();
-            }
+            userDao = cosmosDBLayer.getUserById(nickname);
         }
         catch (CosmosException e) {
             throw new WebApplicationException(e.getStatusCode());
@@ -99,11 +95,7 @@ public class UsersResource {
         // Get User
         UserDAO userDao = null;
         try {
-            CosmosPagedIterable<UserDAO> response1 = cosmosDBLayer.getUserById(nickname);
-            Iterator<UserDAO> it = response1.stream().iterator();
-            if(it.hasNext()) {
-                userDao = it.next();
-            }
+            userDao = cosmosDBLayer.getUserById(nickname);
         }
         catch (CosmosException e) {
             throw new WebApplicationException(e.getStatusCode());

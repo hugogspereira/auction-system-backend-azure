@@ -11,7 +11,14 @@ import com.azure.cosmos.models.CosmosQueryRequestOptions;
 import com.azure.cosmos.models.PartitionKey;
 import com.azure.cosmos.util.CosmosPagedIterable;
 import scc.dao.AuctionDAO;
+import scc.dao.BidDAO;
 import scc.dao.UserDAO;
+import scc.model.Auction;
+import scc.model.User;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 public class CosmosDBLayer {
 	private static final String CONNECTION_URL = "https://scc22234204.documents.azure.com:443/";
@@ -42,8 +49,9 @@ public class CosmosDBLayer {
 	private CosmosClient client;
 	private CosmosDatabase db;
 	private CosmosContainer users;
-
 	private CosmosContainer auctions;
+	private CosmosContainer bids;
+
 
 	public CosmosDBLayer(CosmosClient client) {
 		this.client = client;
@@ -55,6 +63,7 @@ public class CosmosDBLayer {
 		db = client.getDatabase(DB_NAME);
 		users = db.getContainer("users");
 		auctions = db.getContainer("auctions");
+		bids = db.getContainer("bids");
 
 	}
 
@@ -74,9 +83,14 @@ public class CosmosDBLayer {
 		return users.createItem(user);
 	}
 
-	public CosmosPagedIterable<UserDAO> getUserById(String id) {
+	public UserDAO getUserById(String id) {
 		init();
-		return users.queryItems("SELECT * FROM users WHERE users.id=\"" + id + "\"", new CosmosQueryRequestOptions(), UserDAO.class);
+		CosmosPagedIterable<UserDAO> iterable = users.queryItems("SELECT * FROM users WHERE users.id=\"" + id + "\"", new CosmosQueryRequestOptions(), UserDAO.class);
+		Iterator<UserDAO> iterator = iterable.iterator();
+		UserDAO userDAO = null;
+		if(iterator.hasNext())
+			userDAO = iterator.next();
+		return userDAO;
 	}
 
 	public CosmosPagedIterable<UserDAO> getUsers() {
@@ -90,15 +104,32 @@ public class CosmosDBLayer {
 		return auctions.createItem(auction);
 	}
 
-	public CosmosPagedIterable<AuctionDAO> getAuctionById(String id) {
+	public AuctionDAO getAuctionById(String id) {
 		init();
-		return auctions.queryItems("SELECT * FROM auctions WHERE auctions.id=\"" + id + "\"", new CosmosQueryRequestOptions(), AuctionDAO.class);
+		CosmosPagedIterable<AuctionDAO> iterable = auctions.queryItems("SELECT * FROM auctions WHERE auctions.id=\"" + id + "\"", new CosmosQueryRequestOptions(), AuctionDAO.class);
+		Iterator<AuctionDAO> iterator = iterable.iterator();
+		AuctionDAO auctionDAO = null;
+		if(iterator.hasNext())
+			auctionDAO = iterator.next();
+		return auctionDAO;
 	}
 
 	public CosmosItemResponse<Object> delAuctionById(String id) {
 		init();
 		PartitionKey key = new PartitionKey(id);
 		return auctions.deleteItem(id, key, new CosmosItemRequestOptions());
+	}
+
+	// Bids
+	public CosmosItemResponse<BidDAO> putBid(BidDAO bid) {
+		init();
+		return bids.createItem(bid);
+	}
+
+	public List<BidDAO> getBids() {
+		init();
+		CosmosPagedIterable<BidDAO> iterable = bids.queryItems("SELECT * FROM bids ", new CosmosQueryRequestOptions(), BidDAO.class);
+		return iterable.stream().toList();
 	}
 
 	public void close() {

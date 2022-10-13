@@ -24,22 +24,20 @@ public class AuctionResource {
         blobStorageLayer = BlobStorageLayer.getInstance();
     }
 
-    //TODO - MinPrice??
-
     @POST
     @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Auction createAuction(Auction auction) {
         if(auction == null || auction.getTitle() == null || auction.getDescription() == null || auction.getPhotoId() == null ||
-                auction.getOwnerNickname() == null || auction.getEndTime() == null || auction.getMinPrice() == 0 ||
-                cosmosDBLayer.getUserById(auction.getOwnerNickname()).stream().count() != 1)
+                auction.getOwnerNickname() == null || auction.getEndTime() == null || auction.getMinPrice() <= 0 ||
+                cosmosDBLayer.getUserById(auction.getOwnerNickname()) == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
         if(!blobStorageLayer.existsBlob(auction.getPhotoId()))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
-        auction.setId(IdGenerator.generateId());
+        auction.setId(IdGenerator.generate());
         auction.setWinnerNickname(null);
         auction.setStatus(AuctionStatus.OPEN);
 
@@ -54,14 +52,13 @@ public class AuctionResource {
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public void updateAuction(@PathParam("id") String id, Auction auction) {
         if(id == null || auction == null || auction.getId() == null || auction.getTitle() == null || auction.getDescription() == null ||
                 auction.getPhotoId() == null || auction.getOwnerNickname() == null || auction.getEndTime() == null ||
-                auction.getMinPrice() == 0)
+                auction.getMinPrice() <= 0)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
-        if(cosmosDBLayer.getAuctionById(id).stream().count() != 1 || cosmosDBLayer.getUserById(auction.getOwnerNickname()).stream().count() != 1 ||
+        if(cosmosDBLayer.getAuctionById(id) == null || cosmosDBLayer.getUserById(auction.getOwnerNickname()) == null ||
                 !blobStorageLayer.existsBlob(auction.getPhotoId()))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
