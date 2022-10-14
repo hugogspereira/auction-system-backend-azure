@@ -129,6 +129,12 @@ public class CosmosDBLayer {
 		return auctions.replaceItem(auction, auction.getId(), key, new CosmosItemRequestOptions());
 	}
 
+	public List<AuctionDAO> getAuctionsByUser(String nickname) {
+		init();
+		CosmosPagedIterable<AuctionDAO> iterable = bids.queryItems("SELECT * FROM auctions LEFT JOIN users ON auctions.ownerNickname=\"" + nickname + "\"", new CosmosQueryRequestOptions(), AuctionDAO.class);   //TODO: check query
+		return iterable.stream().toList();
+	}
+
 	// Bids
 	public CosmosItemResponse<BidDAO> putBid(BidDAO bid) {
 		init();
@@ -141,8 +147,19 @@ public class CosmosDBLayer {
 		return iterable.stream().toList();
 	}
 
+	public List<BidDAO> getBidsByUser(String nickname) {
+		init();
+		CosmosPagedIterable<BidDAO> iterable = bids.queryItems("SELECT * FROM bids LEFT JOIN users ON bids.userNickname=\"" + nickname + "\"", new CosmosQueryRequestOptions(), BidDAO.class);   //TODO: check query
+		return iterable.stream().toList();
+	}
+
+	public CosmosItemResponse<BidDAO> replaceBid(BidDAO bid) {
+		init();
+		PartitionKey key = new PartitionKey(bid.getId());
+		return bids.replaceItem(bid, bid.getId(), key, new CosmosItemRequestOptions());
+	}
+
 	public void close() {
 		client.close();
 	}
-
 }

@@ -4,11 +4,17 @@ import com.azure.cosmos.CosmosException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import scc.dao.AuctionDAO;
+import scc.dao.BidDAO;
 import scc.dao.UserDAO;
 import scc.layers.BlobStorageLayer;
 import scc.layers.CosmosDBLayer;
 import scc.model.User;
 import scc.utils.Hash;
+
+import java.util.List;
+
+import static scc.dao.AuctionDAO.DELETED_USER;
 
 @Path(UsersResource.PATH)
 public class UsersResource {
@@ -58,10 +64,25 @@ public class UsersResource {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         checkPwd(userDao.getPwd(), password);
+
+        // Check if there is not an OPEN auction
+        List<AuctionDAO> auctions = cosmosDBLayer.getAuctionsByUser(nickname);
+        if(auctions.stream().anyMatch(auctionDAO -> auctionDAO.isOpen())) {
+            throw new WebApplicationException(Response.Status.FORBIDDEN);
+        }
         // Delete User
         try {
+            auctions.forEach(auctionDAO -> {
+                auctionDAO.setOwnerNickname(DELETED_USER);
+                cosmosDBLayer.replaceAuction(auctionDAO);
+            });
+            List<BidDAO> bids = cosmosDBLayer.getBidsByUser(nickname);
+            bids.forEach(bidDAO -> {
+                bidDAO.setUserNickname(DELETED_USER);
+                cosmosDBLayer.replaceBid(bidDAO);
+            });
+            // TODO: maybe garbage collector
             cosmosDBLayer.delUserById(nickname);
-            // TODO: After a user is deleted, auctions and bids from the user appear as been performed by a default “Deleted User” user.
         } catch (CosmosException e) {
             throw new WebApplicationException(e.getStatusCode());
         }

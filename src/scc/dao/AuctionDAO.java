@@ -5,6 +5,8 @@ import scc.utils.AuctionStatus;
 
 public class AuctionDAO {
 
+    public static String DELETED_USER = "Deleted User";
+
     private String _rid;
     private String _ts;
     private String id;
@@ -117,6 +119,10 @@ public class AuctionDAO {
 
     public void setWinningValue(float winningValue) {
         this.winningValue = winningValue;
+    }
+
+    public boolean isOpen() {
+        return status.equals(AuctionStatus.OPEN);
     }
 
     public boolean isNewValue(float newValue) {
