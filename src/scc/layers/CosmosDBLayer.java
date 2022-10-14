@@ -13,11 +13,8 @@ import com.azure.cosmos.util.CosmosPagedIterable;
 import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
 import scc.dao.UserDAO;
-import scc.model.Auction;
-import scc.model.User;
 
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 public class CosmosDBLayer {
@@ -138,9 +135,9 @@ public class CosmosDBLayer {
 		return bids.createItem(bid);
 	}
 
-	public List<BidDAO> getBids() {
+	public List<BidDAO> getBidsByAuction(String auctionId) {
 		init();
-		CosmosPagedIterable<BidDAO> iterable = bids.queryItems("SELECT * FROM bids ", new CosmosQueryRequestOptions(), BidDAO.class);
+		CosmosPagedIterable<BidDAO> iterable = bids.queryItems("SELECT * FROM bids LEFT JOIN auctions ON bids.auctionId=\"" + auctionId + "\"", new CosmosQueryRequestOptions(), BidDAO.class);   //TODO: check query
 		return iterable.stream().toList();
 	}
 

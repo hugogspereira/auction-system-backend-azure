@@ -1,10 +1,7 @@
 package scc.dao;
 
 import scc.model.Auction;
-import scc.model.User;
 import scc.utils.AuctionStatus;
-
-import java.util.Arrays;
 
 public class AuctionDAO {
 
@@ -17,19 +14,19 @@ public class AuctionDAO {
     private String ownerNickname;
     private String endTime;             //type?
     private float minPrice;
-    private String winnerNickname;
+    private String winnerBid;
     private AuctionStatus status;
+    private float winningValue;
 
     public AuctionDAO() {
     }
 
     public AuctionDAO(Auction a) {
-        this(a.getId(), a.getTitle(), a.getDescription(), a.getPhotoId(), a.getOwnerNickname(), a.getEndTime(), a.getMinPrice(),
-        a.getWinnerNickname(), a.getStatus());
+        this(a.getId(), a.getTitle(), a.getDescription(), a.getPhotoId(), a.getOwnerNickname(), a.getEndTime(), a.getMinPrice());
     }
 
-    public AuctionDAO(String id, String title, String description, String photoId, String ownerNickname, String endTime,
-                      float minPrice, String winnerNickname, AuctionStatus status) {
+    public AuctionDAO(String id, String title, String description, String photoId, String ownerNickname,
+                      String endTime, float minPrice) {
         super();
         this.id = id;
         this.title = title;
@@ -38,8 +35,9 @@ public class AuctionDAO {
         this.ownerNickname = ownerNickname;
         this.endTime = endTime;
         this.minPrice = minPrice;
-        this.winnerNickname = winnerNickname;
-        this.status = status;
+        this.winnerBid = null;
+        this.status = AuctionStatus.OPEN;
+        this.winningValue = 0;
     }
 
     public String get_rid() {
@@ -96,11 +94,11 @@ public class AuctionDAO {
     public void setMinPrice(float minPrice) {
         this.minPrice = minPrice;
     }
-    public String getWinnerNickname() {
-        return winnerNickname;
+    public String getWinnerBid() {
+        return winnerBid;
     }
-    public void setWinnerNickname(String winnerNickname) {
-        this.winnerNickname = winnerNickname;
+    public void setWinnerBid(String winnerBid) {
+        this.winnerBid = winnerBid;
     }
     public AuctionStatus getStatus() {
         return status;
@@ -110,24 +108,36 @@ public class AuctionDAO {
     }
 
     public Auction toAuction() {
-        return new Auction(id, title, description, photoId, ownerNickname, endTime, minPrice, winnerNickname, status);
+        return new Auction(id, title, description, photoId, ownerNickname, endTime, minPrice, winnerBid, status);
+    }
+
+    public float getWinningValue() {
+        return winningValue;
+    }
+
+    public void setWinningValue(float winningValue) {
+        this.winningValue = winningValue;
+    }
+
+    public boolean isNewValue(float newValue) {
+        return newValue >= minPrice && newValue > winningValue;
     }
 
     @Override
     public String toString() {
-        return "AuctionDAO [" +
+        return "AuctionDAO{" +
                 "_rid='" + _rid + '\'' +
                 ", _ts='" + _ts + '\'' +
-                ", id=" + id +
+                ", id='" + id + '\'' +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", photoId='" + photoId + '\'' +
                 ", ownerNickname='" + ownerNickname + '\'' +
                 ", endTime='" + endTime + '\'' +
                 ", minPrice=" + minPrice +
-                ", winnerNickname='" + winnerNickname + '\'' +
+                ", winnerBid='" + winnerBid + '\'' +
                 ", status=" + status +
-                ']';
+                ", winningValue=" + winningValue +
+                '}';
     }
-
 }

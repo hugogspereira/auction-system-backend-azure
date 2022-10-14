@@ -8,11 +8,12 @@ import scc.dao.AuctionDAO;
 import scc.layers.BlobStorageLayer;
 import scc.layers.CosmosDBLayer;
 import scc.model.Auction;
-import scc.utils.AuctionStatus;
 import scc.utils.IdGenerator;
 
 @Path(AuctionResource.PATH)
 public class AuctionResource {
+
+    //TODO: end auctions with azure functions
 
     public static final String PATH = "/auction";
 
@@ -39,8 +40,6 @@ public class AuctionResource {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
         auction.setId(IdGenerator.generate());
-        auction.setWinnerNickname(null);
-        auction.setStatus(AuctionStatus.OPEN);
 
         try {
             cosmosDBLayer.putAuction(new AuctionDAO(auction));

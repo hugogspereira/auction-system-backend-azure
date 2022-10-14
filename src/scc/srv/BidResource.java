@@ -23,8 +23,6 @@ public class BidResource {
         cosmosDBLayer = CosmosDBLayer.getInstance();
     }
 
-    //TODO: check call exceptions
-
     @POST
     @Path("/{id}/bid/")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -33,24 +31,23 @@ public class BidResource {
         if(bid == null || auctionId == null || bid.getUserNickname() == null || bid.getValue() <= 0)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
-        AuctionDAO auctionDAO;
-        UserDAO userDAO;
-        try {
-            auctionDAO = cosmosDBLayer.getAuctionById(bid.getAuctionId());
-            userDAO = cosmosDBLayer.getUserById(bid.getUserNickname());
-        } catch(Exception e) {
-            throw new WebApplicationException(e);
-        }
+        AuctionDAO auctionDAO = cosmosDBLayer.getAuctionById(bid.getAuctionId());
+        UserDAO userDAO = cosmosDBLayer.getUserById(bid.getUserNickname());
         if(auctionDAO == null || userDAO == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
         bid.setId(IdGenerator.generate());
         bid.setAuctionId(auctionId);
 
-        //TODO
+        if(!auctionDAO.isNewValue(bid.getValue()))
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
+        auctionDAO.setWinnerBid(bid.getId());
+        auctionDAO.setWinningValue(bid.getValue());
         try {
             cosmosDBLayer.putBid(new BidDAO(bid));
+            //TODO: if something wrong occurs, garbage collector
+            cosmosDBLayer.replaceAuction(auctionDAO);
         } catch(Exception e) {
             throw new WebApplicationException(e);
         }
@@ -65,24 +62,18 @@ public class BidResource {
         if(auctionId == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
-        AuctionDAO auctionDAO;
-        try {
-            auctionDAO = cosmosDBLayer.getAuctionById(auctionId);
-        } catch(Exception e) {
-            throw new WebApplicationException(e);
-        }
+        AuctionDAO auctionDAO = cosmosDBLayer.getAuctionById(auctionId);
         if(auctionDAO == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
-        List<BidDAO> bidsDAO = null;
         try {
-            bidsDAO = cosmosDBLayer.getBids();
+            List<BidDAO> bidsDAO = cosmosDBLayer.getBidsByAuction(auctionId);
+            if(bidsDAO == null)
+                return null;
+            return bidsDAO.stream().map(bidDAO -> bidDAO.toBid()).collect(Collectors.toList());
         } catch(Exception e) {
             throw new WebApplicationException(e);
         }
-        if(bidsDAO == null)
-            return null;
-        return bidsDAO.stream().map(bidDAO -> bidDAO.toBid()).collect(Collectors.toList());
     }
 
 }

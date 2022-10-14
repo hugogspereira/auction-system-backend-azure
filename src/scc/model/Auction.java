@@ -11,11 +11,11 @@ public class Auction {
     private String ownerNickname;
     private String endTime;             //TODO - type?
     private float minPrice;
-    private String winnerNickname;
+    private String winnerBid;           //when auctionStatus is OPEN, this is used has the current winner
     private AuctionStatus status;
 
     public Auction(String id, String title, String description, String photoId, String ownerNickname, String endTime,
-                   float minPrice, String winnerNickname, AuctionStatus status) {
+                   float minPrice, String winnerBid, AuctionStatus status) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -23,7 +23,7 @@ public class Auction {
         this.ownerNickname = ownerNickname;
         this.endTime = endTime;
         this.minPrice = minPrice;
-        this.winnerNickname = winnerNickname;
+        this.winnerBid = winnerBid;
         this.status = status;
     }
 
@@ -83,12 +83,12 @@ public class Auction {
         this.minPrice = minPrice;
     }
 
-    public String getWinnerNickname() {
-        return winnerNickname;
+    public String getWinnerBid() {
+        return winnerBid;
     }
 
-    public void setWinnerNickname(String winnerNickname) {
-        this.winnerNickname = winnerNickname;
+    public void setWinnerBid(String winnerBid) {
+        this.winnerBid = winnerBid;
     }
 
     public AuctionStatus getStatus() {
