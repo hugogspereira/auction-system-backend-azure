@@ -69,7 +69,7 @@ public class CosmosDBLayer {
 
 	public CosmosItemResponse<Object> delUserById(String id) {
 		init();
-		PartitionKey key = new PartitionKey( id);
+		PartitionKey key = new PartitionKey(id);
 		return users.deleteItem(id, key, new CosmosItemRequestOptions());
 	}
 	
@@ -91,6 +91,12 @@ public class CosmosDBLayer {
 		if(iterator.hasNext())
 			userDAO = iterator.next();
 		return userDAO;
+	}
+
+	public CosmosItemResponse<UserDAO> replaceUser(UserDAO user) {
+		init();
+		PartitionKey key = new PartitionKey(user.getNickname());
+		return users.replaceItem(user, user.getNickname(), key, new CosmosItemRequestOptions());
 	}
 
 	public CosmosPagedIterable<UserDAO> getUsers() {
@@ -118,6 +124,12 @@ public class CosmosDBLayer {
 		init();
 		PartitionKey key = new PartitionKey(id);
 		return auctions.deleteItem(id, key, new CosmosItemRequestOptions());
+	}
+
+	public CosmosItemResponse<AuctionDAO> replaceAuction(AuctionDAO auction) {
+		init();
+		PartitionKey key = new PartitionKey(auction.getId());
+		return auctions.replaceItem(auction, auction.getId(), key, new CosmosItemRequestOptions());
 	}
 
 	// Bids

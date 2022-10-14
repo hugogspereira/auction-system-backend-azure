@@ -1,5 +1,6 @@
 package scc.srv;
 
+import com.azure.cosmos.CosmosException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -43,8 +44,8 @@ public class AuctionResource {
 
         try {
             cosmosDBLayer.putAuction(new AuctionDAO(auction));
-        } catch(Exception e) {
-            throw new WebApplicationException(e);
+        } catch(CosmosException e) {
+            throw new WebApplicationException(e.getStatusCode());
         }
         return auction;
     }
@@ -54,19 +55,20 @@ public class AuctionResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public void updateAuction(@PathParam("id") String id, Auction auction) {
         if(id == null || auction == null || auction.getId() == null || auction.getTitle() == null || auction.getDescription() == null ||
-                auction.getPhotoId() == null || auction.getOwnerNickname() == null || auction.getEndTime() == null ||
-                auction.getMinPrice() <= 0)
+                auction.getPhotoId() == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
-        if(cosmosDBLayer.getAuctionById(id) == null || cosmosDBLayer.getUserById(auction.getOwnerNickname()) == null ||
-                !blobStorageLayer.existsBlob(auction.getPhotoId()))
+        AuctionDAO auctionDAO = cosmosDBLayer.getAuctionById(id);
+        if(auctionDAO == null || !blobStorageLayer.existsBlob(auction.getPhotoId()))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
+        auctionDAO.setTitle(auction.getTitle());
+        auctionDAO.setDescription(auction.getDescription());
+        auctionDAO.setPhotoId(auction.getPhotoId());
         try {
-            cosmosDBLayer.delAuctionById(id);
-            cosmosDBLayer.putAuction(new AuctionDAO(auction));
-        } catch(Exception e) {
-            throw new WebApplicationException(e);
+            cosmosDBLayer.replaceAuction(auctionDAO);
+        } catch(CosmosException e) {
+            throw new WebApplicationException(e.getStatusCode());
         }
     }
 }
