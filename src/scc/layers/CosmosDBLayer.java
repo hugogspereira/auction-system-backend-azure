@@ -12,6 +12,7 @@ import com.azure.cosmos.models.PartitionKey;
 import com.azure.cosmos.util.CosmosPagedIterable;
 import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
+import scc.dao.QuestionDAO;
 import scc.dao.UserDAO;
 
 import java.util.Iterator;
@@ -48,6 +49,7 @@ public class CosmosDBLayer {
 	private CosmosContainer users;
 	private CosmosContainer auctions;
 	private CosmosContainer bids;
+	private CosmosContainer questions;
 
 
 	public CosmosDBLayer(CosmosClient client) {
@@ -61,6 +63,7 @@ public class CosmosDBLayer {
 		users = db.getContainer("users");
 		auctions = db.getContainer("auctions");
 		bids = db.getContainer("bids");
+		questions = db.getContainer("questions");
 
 	}
 
@@ -157,6 +160,27 @@ public class CosmosDBLayer {
 		init();
 		PartitionKey key = new PartitionKey(bid.getId());
 		return bids.replaceItem(bid, bid.getId(), key, new CosmosItemRequestOptions());
+	}
+
+	public CosmosItemResponse<QuestionDAO> putQuestion(QuestionDAO question) {
+		init();
+		return questions.createItem(question);
+	}
+
+	public QuestionDAO getQuestionById(String id){
+		init();
+		CosmosPagedIterable<QuestionDAO> iterable = questions.queryItems("SELECT * FROM questions WHERE questions.id=\"" + id + "\"", new CosmosQueryRequestOptions(), QuestionDAO.class);
+		Iterator<QuestionDAO> iterator = iterable.iterator();
+		QuestionDAO questionDAO = null;
+		if(iterator.hasNext())
+			questionDAO = iterator.next();
+		return questionDAO;
+	}
+
+	public List<QuestionDAO> getQuestionsByAuctionId(String auctionId){
+		init();
+		CosmosPagedIterable<QuestionDAO> iterable = questions.queryItems("SELECT * FROM questions LEFT JOIN auctions ON questions.auctionId=\"" + auctionId + "\"", new CosmosQueryRequestOptions(), QuestionDAO.class);
+		return iterable.stream().toList();
 	}
 
 	public void close() {

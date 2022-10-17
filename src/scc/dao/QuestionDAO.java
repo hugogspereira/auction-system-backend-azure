@@ -1,24 +1,30 @@
 package scc.dao;
 
-public class QuestionsDAO {
+import scc.model.Question;
+
+public class QuestionDAO {
 
     private String _rid;
     private String _ts;
     private String id;
-    private boolean reply; //if this is a reply to the question
+    private boolean reply; //if this is a reply to the question then it's true
     private String auctionId;
     private String userNickname;
     private String message;
 
-    public QuestionsDAO() {}; //to deserialize JSON
+    public QuestionDAO() {} //to deserialize JSON
 
-    public QuestionsDAO(String id, boolean reply, String auctionId, String userNickname, String message) {
+    public QuestionDAO(String id, boolean reply, String auctionId, String userNickname, String message) {
         super();
         this.id = id;
         this.reply = reply;
         this.auctionId = auctionId;
         this.userNickname = userNickname;
         this.message = message;
+    }
+
+    public QuestionDAO(Question question) {
+        this(question.getId(), question.getReply(), question.getAuctionId(), question.getUserNickname(), question.getMessage());
     }
 
     public String get_rid() {
@@ -75,6 +81,10 @@ public class QuestionsDAO {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public Question toQuestion() {
+        return new Question(id, reply, auctionId, userNickname, message);
     }
 
     @Override
