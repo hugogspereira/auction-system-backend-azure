@@ -5,7 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import scc.dao.AuctionDAO;
+import scc.dao.BidDAO;
 import scc.dao.UserDAO;
+
+import java.util.List;
 
 public class RedisCache {
 
@@ -51,6 +55,24 @@ public class RedisCache {
         }
     }
 
+    public void putAuction(AuctionDAO auction) {
+        ObjectMapper mapper = new ObjectMapper();
+        try(Jedis jedis = instance.getResource()) {
+            jedis.set("auction:"+auction.getId(), mapper.writeValueAsString(auction));
+        } catch (JsonProcessingException e) {
+            System.out.println("Redis Cache: unable to put the auction in cache.\n"+e.getMessage());
+        }
+    }
+
+    public void putBid(BidDAO bid) {
+        ObjectMapper mapper = new ObjectMapper();
+        try(Jedis jedis = instance.getResource()) {
+            jedis.set("bid:"+bid.getId(), mapper.writeValueAsString(bid));
+        } catch (JsonProcessingException e) {
+            System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
+        }
+    }
+
     public boolean existUser(String nickname) {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
@@ -67,6 +89,16 @@ public class RedisCache {
             System.out.println("Redis Cache: unable to get the user in cache.\n"+e.getMessage());
             return null;
         }
+    }
+
+    public List<AuctionDAO> getAuctionByUser(String nickname) {
+        // TODO
+       return null;
+    }
+
+    public List<BidDAO> getBidsByUser(String nickname) {
+        // TODO
+        return null;
     }
 
     public void deleteUser(String nickname) {

@@ -4,12 +4,11 @@ import com.azure.cosmos.CosmosException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import scc.cache.RedisCache;
 import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
 import scc.dao.UserDAO;
 import scc.layers.BlobStorageLayer;
-import scc.layers.CosmosDBLayer;
+import scc.layers.RedisCosmosLayer;
 import scc.model.User;
 import scc.utils.Hash;
 import java.util.List;
@@ -19,14 +18,16 @@ import static scc.dao.AuctionDAO.DELETED_USER;
 public class UsersResource {
 
     public static final String PATH = "/user";
-    private final CosmosDBLayer cosmosDBLayer;
+    //private final CosmosDBLayer cosmosDBLayer;
     private final BlobStorageLayer blobStorageLayer;
-    private final RedisCache redisCache;
+    //private final RedisCache redisCache;
+    private final RedisCosmosLayer redisCosmosLayer;
 
     public UsersResource() {
-        cosmosDBLayer = CosmosDBLayer.getInstance();
+        //cosmosDBLayer = CosmosDBLayer.getInstance();
         blobStorageLayer = BlobStorageLayer.getInstance();
-        redisCache = RedisCache.getInstance();
+        //redisCache = RedisCache.getInstance();
+        redisCosmosLayer = RedisCosmosLayer.getInstance();
     }
 
     @POST
@@ -42,15 +43,7 @@ public class UsersResource {
         }
         // Create User
         user.setPwd(Hash.of(user.getPwd()));
-        UserDAO userDao = new UserDAO(user);
-        try {
-            cosmosDBLayer.putUser(userDao);
-            redisCache.putUser(userDao);
-            return user;
-        }
-        catch(CosmosException e) {
-            throw new WebApplicationException(e.getStatusCode());
-        }
+        return redisCosmosLayer.putUser(user);
     }
 
     @DELETE
@@ -61,13 +54,7 @@ public class UsersResource {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
         // Get User
-        UserDAO userDao;
-        if(RedisCache.IS_ACTIVE ) {
-            userDao = redisCache.getUser(nickname);
-        }
-        else {
-            userDao = cosmosDBLayer.getUserById(nickname);
-        }
+        UserDAO userDao = redisCosmosLayer.getUserById(nickname);
         // See if User exists
         if(userDao == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -75,7 +62,7 @@ public class UsersResource {
         checkPwd(userDao.getPwd(), password);
 
         // Check if there is not an OPEN auction
-        List<AuctionDAO> auctions = cosmosDBLayer.getAuctionsByUser(nickname);
+        List<AuctionDAO> auctions = redisCosmosLayer.getAuctionsByUser(nickname);
         if(auctions.stream().anyMatch(auctionDAO -> auctionDAO.isOpen())) {
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         }
@@ -83,16 +70,15 @@ public class UsersResource {
         try {
             auctions.forEach(auctionDAO -> {
                 auctionDAO.setOwnerNickname(DELETED_USER);
-                cosmosDBLayer.replaceAuction(auctionDAO);
+                redisCosmosLayer.replaceAuction(auctionDAO);
             });
-            List<BidDAO> bids = cosmosDBLayer.getBidsByUser(nickname);
+            List<BidDAO> bids = redisCosmosLayer.getBidsByUser(nickname);
             bids.forEach(bidDAO -> {
                 bidDAO.setUserNickname(DELETED_USER);
-                cosmosDBLayer.replaceBid(bidDAO);
+                redisCosmosLayer.replaceBid(bidDAO);
             });
             // TODO: maybe garbage collector
-            cosmosDBLayer.delUserById(nickname);
-            redisCache.deleteUser(nickname);
+            redisCosmosLayer.deleteUser(nickname);
         } catch (CosmosException e) {
             throw new WebApplicationException(e.getStatusCode());
         }
@@ -107,13 +93,7 @@ public class UsersResource {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
         // Get User
-        UserDAO userDao;
-        if(RedisCache.IS_ACTIVE ) {
-            userDao = redisCache.getUser(nickname);
-        }
-        else {
-            userDao = cosmosDBLayer.getUserById(nickname);
-        }
+        UserDAO userDao = redisCosmosLayer.getUserById(nickname);
         // See if User exists
         if(userDao == null || !blobStorageLayer.existsBlob(user.getPhotoId())) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -123,13 +103,7 @@ public class UsersResource {
         userDao.setName(user.getName());
         userDao.setPwd(user.getPwd());
         userDao.setPhotoId(user.getPhotoId());
-        try {
-            cosmosDBLayer.replaceUser(userDao);
-            redisCache.putUser(userDao);
-        }
-        catch (CosmosException e) {
-            throw new WebApplicationException(e.getStatusCode());
-        }
+        redisCosmosLayer.replaceUser(userDao);
     }
 
     private void checkPwd(String expectedPwd, String pwd) {
