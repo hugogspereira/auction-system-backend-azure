@@ -11,6 +11,7 @@ import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
 import scc.dao.UserDAO;
 import scc.model.Auction;
+import scc.model.Bid;
 import scc.model.User;
 
 import java.util.List;
@@ -145,6 +146,21 @@ public class RedisCosmosLayer {
 		}
 	}
 
+	public Bid putBid(Bid bid, AuctionDAO auctionDAO) {
+		BidDAO bidDAO = new BidDAO(bid);
+		try {
+			cosmosDBLayer.putBid(bidDAO);
+			cosmosDBLayer.replaceAuction(auctionDAO);
+			if(RedisCache.IS_ACTIVE ) {
+				redisCache.putBid(bidDAO);
+			}
+			return bid;
+		}
+		catch(CosmosException e) {
+			throw new WebApplicationException(e.getStatusCode());
+		}
+	}
+
 	public List<BidDAO> getBidsByUser(String nickname) {
 		List<BidDAO> bidsDao;
 		if(RedisCache.IS_ACTIVE ) {
@@ -172,4 +188,17 @@ public class RedisCosmosLayer {
 	}
 
 
+	public List<BidDAO> getBidsByAuction(String auctionId) {
+		List<BidDAO> bidsDao;
+		if(RedisCache.IS_ACTIVE ) {
+			bidsDao = redisCache.getBidsByAuction(auctionId);
+			if(bidsDao == null) {
+				bidsDao = cosmosDBLayer.getBidsByAuction(auctionId);
+			}
+		}
+		else {
+			bidsDao = cosmosDBLayer.getBidsByAuction(auctionId);
+		}
+		return bidsDao;
+	}
 }

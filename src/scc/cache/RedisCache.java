@@ -112,6 +112,11 @@ public class RedisCache {
         return null;
     }
 
+    public List<BidDAO> getBidsByAuction(String auctionId) {
+        // TODO
+        return null;
+    }
+
     public void deleteUser(String nickname) {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
