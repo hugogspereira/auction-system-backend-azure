@@ -10,6 +10,8 @@ import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 
+import static scc.utils.AzureProperties.BLOB_KEY;
+
 public class BlobStorageLayer {
     private static BlobStorageLayer instance;
     private static BlobContainerClient blobContainerClient;
@@ -23,7 +25,7 @@ public class BlobStorageLayer {
                 return instance;
             }
             // Get connection string in the storage access keys page
-            String storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=scc2122storage;AccountKey=???/???+???+???+???/jg==;EndpointSuffix=core.windows.net";
+            String storageConnectionString = System.getenv(BLOB_KEY);
             // Get container client
             BlobContainerClient blobContainerClient = new BlobContainerClientBuilder()
                                                         .connectionString(storageConnectionString)
