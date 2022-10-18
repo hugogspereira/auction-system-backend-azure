@@ -8,6 +8,7 @@ import scc.dao.QuestionDAO;
 import scc.layers.CosmosDBLayer;
 import scc.model.Question;
 import scc.utils.IdGenerator;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,18 +26,31 @@ public class QuestionResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Question createQuestion(@PathParam("id") String auctionId, Question question) {
-        if(auctionId == null || question == null || question.getMessage() == null || question.getUserNickname() == null)
+        if (auctionId == null || question == null || question.getMessage() == null || question.getUserNickname() == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
-        if(cosmosDBLayer.getUserById(question.getUserNickname()) == null)
+        if (cosmosDBLayer.getUserById(question.getUserNickname()) == null || cosmosDBLayer.getAuctionById(auctionId) == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
+
+        //in case of a reply, check if the question exists and if the user is the owner of the auction
+        if(question.getReply()){
+            if(cosmosDBLayer.getQuestionById(question.getQuestionId()) == null)
+                throw new WebApplicationException(Response.Status.NOT_FOUND);
+            if(!cosmosDBLayer.getAuctionById(auctionId).getOwnerNickname().equals(question.getUserNickname()))
+                throw new WebApplicationException(Response.Status.FORBIDDEN);
+        }
 
         question.setId(IdGenerator.generate());
         question.setAuctionId(auctionId);
+        if (question.getReply()) {
+            question.setQuestionId(question.getQuestionId());
+        } else {
+            question.setQuestionId(question.getId());
+        }
 
         try {
             cosmosDBLayer.putQuestion(new QuestionDAO(question));
-        } catch(CosmosException e) {
+        } catch (CosmosException e) {
             throw new WebApplicationException(e.getStatusCode());
         }
         return question;
@@ -46,21 +60,21 @@ public class QuestionResource {
     @Path("/{id}/question/")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Question> listQuestions(@PathParam("id") String auctionId) {
-        if(auctionId == null)
+        if (auctionId == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         QuestionDAO questionDAO = cosmosDBLayer.getQuestionById(auctionId);
 
-        if(questionDAO == null)
+        if (questionDAO == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
-        try{
+        try {
             List<QuestionDAO> list = cosmosDBLayer.getQuestionsByAuctionId(auctionId);
-            if(list == null)
+            if (list == null)
                 return null;
             //removes all replies
             list.removeAll(list.stream().filter(QuestionDAO::getReply).collect(Collectors.toList()));
             return list.stream().map(QuestionDAO::toQuestion).collect(Collectors.toList());
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new WebApplicationException(e);
         }
     }

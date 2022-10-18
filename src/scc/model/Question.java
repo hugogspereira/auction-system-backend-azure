@@ -4,14 +4,16 @@ public class Question {
 
     public String id;
     public boolean reply; //if this is a reply to the question
+    public String questionId; //if this is a reply to the question then it's the id of the question
     public String auctionId;
     public String userNickname;
     public String message;
 
-    public Question(String id, boolean reply, String auctionId, String userNickname, String message) {
+    public Question(String id, boolean reply, String questionId, String auctionId, String userNickname, String message) {
         super();
         this.id = id;
         this.reply = reply;
+        this.questionId = questionId;
         this.auctionId = auctionId;
         this.userNickname = userNickname;
         this.message = message;
@@ -31,6 +33,14 @@ public class Question {
 
     public void setReply(boolean reply) {
         this.reply = reply;
+    }
+
+    public String getQuestionId() {
+        return questionId;
+    }
+
+    public void setQuestionId(String questionId) {
+        this.questionId = questionId;
     }
 
     public String getAuctionId() {

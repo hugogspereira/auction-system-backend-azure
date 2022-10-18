@@ -8,23 +8,26 @@ public class QuestionDAO {
     private String _ts;
     private String id;
     private boolean reply; //if this is a reply to the question then it's true
+    private String questionId; //if this is a reply to the question then it's the id of the question
     private String auctionId;
     private String userNickname;
     private String message;
 
-    public QuestionDAO() {} //to deserialize JSON
+    public QuestionDAO() {
+    } //to deserialize JSON
 
-    public QuestionDAO(String id, boolean reply, String auctionId, String userNickname, String message) {
+    public QuestionDAO(String id, boolean reply, String questionId, String auctionId, String userNickname, String message) {
         super();
         this.id = id;
         this.reply = reply;
+        this.questionId = questionId;
         this.auctionId = auctionId;
         this.userNickname = userNickname;
         this.message = message;
     }
 
     public QuestionDAO(Question question) {
-        this(question.getId(), question.getReply(), question.getAuctionId(), question.getUserNickname(), question.getMessage());
+        this(question.getId(), question.getReply(), question.getQuestionId(), question.getAuctionId(), question.getUserNickname(), question.getMessage());
     }
 
     public String get_rid() {
@@ -59,6 +62,14 @@ public class QuestionDAO {
         this.reply = reply;
     }
 
+    public String getQuestionId() {
+        return questionId;
+    }
+
+    public void setQuestionId(String questionId) {
+        this.questionId = questionId;
+    }
+
     public String getAuctionId() {
         return auctionId;
     }
@@ -84,7 +95,7 @@ public class QuestionDAO {
     }
 
     public Question toQuestion() {
-        return new Question(id, reply, auctionId, userNickname, message);
+        return new Question(id, reply, questionId, auctionId, userNickname, message);
     }
 
     @Override
