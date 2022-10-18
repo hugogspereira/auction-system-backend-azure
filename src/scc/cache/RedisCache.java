@@ -91,6 +91,17 @@ public class RedisCache {
         }
     }
 
+    public AuctionDAO getAuction(String id) {
+        ObjectMapper mapper = new ObjectMapper();
+        try(Jedis jedis = instance.getResource()) {
+            String stringUser = jedis.get("auction:"+id);
+            return mapper.readValue(stringUser, AuctionDAO.class);
+        } catch (JsonProcessingException e) {
+            System.out.println("Redis Cache: unable to get the auction in cache.\n"+e.getMessage());
+            return null;
+        }
+    }
+
     public List<AuctionDAO> getAuctionByUser(String nickname) {
         // TODO
        return null;
