@@ -10,7 +10,12 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>  
     <authors>58010-58081-59187</authors>
   </properties>  
-  <dependencies> 
+  <dependencies>
+    <dependency>
+      <groupId>com.microsoft.azure</groupId>
+      <artifactId>azure</artifactId>
+      <version>1.41.4</version>
+    </dependency>
     <dependency> 
       <groupId>javax.ws.rs</groupId>  
       <artifactId>javax.ws.rs-api</artifactId>  

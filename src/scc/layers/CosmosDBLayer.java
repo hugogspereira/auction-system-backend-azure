@@ -18,10 +18,12 @@ import scc.dao.UserDAO;
 import java.util.Iterator;
 import java.util.List;
 
+import static scc.utils.AzureProperties.*;
+
 public class CosmosDBLayer {
-	private static final String CONNECTION_URL = "https://scc22234204.documents.azure.com:443/";
-	private static final String DB_KEY = "????????==";
-	private static final String DB_NAME = "scc2223db";
+	private static final String CONNECTION_URL = System.getenv(COSMOSDB_URL);
+	private static final String DB_KEY = System.getenv(COSMOSDB_KEY);
+	private static final String DB_NAME = System.getenv(COSMOSDB_DATABASE);
 	
 	private static CosmosDBLayer instance;
 

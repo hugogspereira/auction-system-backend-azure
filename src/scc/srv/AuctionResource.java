@@ -7,6 +7,7 @@ import jakarta.ws.rs.core.Response;
 import scc.dao.AuctionDAO;
 import scc.layers.BlobStorageLayer;
 import scc.layers.CosmosDBLayer;
+import scc.layers.RedisCosmosLayer;
 import scc.model.Auction;
 import scc.utils.IdGenerator;
 
@@ -17,12 +18,12 @@ public class AuctionResource {
 
     public static final String PATH = "/auction";
 
-    private final CosmosDBLayer cosmosDBLayer;
+    private final RedisCosmosLayer redisCosmosLayer;
     private final BlobStorageLayer blobStorageLayer;
 
 
     public AuctionResource() {
-        cosmosDBLayer = CosmosDBLayer.getInstance();
+        redisCosmosLayer = RedisCosmosLayer.getInstance();
         blobStorageLayer = BlobStorageLayer.getInstance();
     }
 
@@ -33,20 +34,14 @@ public class AuctionResource {
     public Auction createAuction(Auction auction) {
         if(auction == null || auction.getTitle() == null || auction.getDescription() == null || auction.getPhotoId() == null ||
                 auction.getOwnerNickname() == null || auction.getEndTime() == null || auction.getMinPrice() <= 0 ||
-                cosmosDBLayer.getUserById(auction.getOwnerNickname()) == null)
+                redisCosmosLayer.getUserById(auction.getOwnerNickname()) == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
         if(!blobStorageLayer.existsBlob(auction.getPhotoId()))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
         auction.setId(IdGenerator.generate());
-
-        try {
-            cosmosDBLayer.putAuction(new AuctionDAO(auction));
-        } catch(CosmosException e) {
-            throw new WebApplicationException(e.getStatusCode());
-        }
-        return auction;
+        return redisCosmosLayer.putAuction(auction);
     }
 
     @PUT
@@ -57,17 +52,13 @@ public class AuctionResource {
                 auction.getPhotoId() == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
-        AuctionDAO auctionDAO = cosmosDBLayer.getAuctionById(id);
+        AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(id);
         if(auctionDAO == null || !blobStorageLayer.existsBlob(auction.getPhotoId()))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
         auctionDAO.setTitle(auction.getTitle());
         auctionDAO.setDescription(auction.getDescription());
         auctionDAO.setPhotoId(auction.getPhotoId());
-        try {
-            cosmosDBLayer.replaceAuction(auctionDAO);
-        } catch(CosmosException e) {
-            throw new WebApplicationException(e.getStatusCode());
-        }
+        redisCosmosLayer.replaceAuction(auctionDAO);
     }
 }
