@@ -107,7 +107,7 @@ public class RedisCache {
         }
     }
 
-    public List<AuctionDAO> getAuctionByUser(String nickname) {
+    public List<AuctionDAO> getAuctionsByUser(String nickname) {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
             List<AuctionDAO> resList = new ArrayList<>();

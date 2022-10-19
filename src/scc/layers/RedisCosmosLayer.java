@@ -1,10 +1,6 @@
 package scc.layers;
 
-import com.azure.cosmos.ConsistencyLevel;
-import com.azure.cosmos.CosmosClient;
-import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.cosmos.CosmosException;
-import com.azure.cosmos.models.CosmosItemResponse;
 import jakarta.ws.rs.WebApplicationException;
 import scc.cache.RedisCache;
 import scc.dao.AuctionDAO;
@@ -109,7 +105,7 @@ public class RedisCosmosLayer {
 	public List<AuctionDAO> getAuctionsByUser(String nickname) {
 		List<AuctionDAO> auctionsDao;
 		if(RedisCache.IS_ACTIVE ) {
-			auctionsDao = redisCache.getAuctionByUser(nickname);
+			auctionsDao = redisCache.getAuctionsByUser(nickname);
 			if(auctionsDao == null) {
 				auctionsDao = cosmosDBLayer.getAuctionsByUser(nickname);
 			}

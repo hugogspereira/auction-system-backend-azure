@@ -136,8 +136,7 @@ public class CosmosDBLayer {
 
 	public List<AuctionDAO> getAuctionsByUser(String nickname) {
 		init();
-		//isn't suppose to be auctions.queryItems???
-		CosmosPagedIterable<AuctionDAO> iterable = bids.queryItems("SELECT * FROM auctions LEFT JOIN users ON auctions.ownerNickname=\"" + nickname + "\"", new CosmosQueryRequestOptions(), AuctionDAO.class);   //TODO: check query
+		CosmosPagedIterable<AuctionDAO> iterable = auctions.queryItems("SELECT * FROM auctions LEFT JOIN users ON auctions.ownerNickname=\"" + nickname + "\"", new CosmosQueryRequestOptions(), AuctionDAO.class);   //TODO: check query
 		return iterable.stream().toList();
 	}
 
