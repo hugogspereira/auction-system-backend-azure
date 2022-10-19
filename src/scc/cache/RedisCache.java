@@ -1,6 +1,7 @@
 package scc.cache;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -68,7 +69,7 @@ public class RedisCache {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
             jedis.set(AUCTION_KEY+auction.getId(), mapper.writeValueAsString(auction));
-            // TODO: Quando se remove o owner (deleteUser) faz sentido apagar a lista
+
             jedis.lpush(USER_AUCTIONS_KEY+auction.getOwnerNickname()+":", mapper.writeValueAsString(auction));
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the auction in cache.\n"+e.getMessage());
@@ -79,7 +80,7 @@ public class RedisCache {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
             jedis.set(BID_KEY+bid.getId(), mapper.writeValueAsString(bid));
-            // TODO: Quando se remove o owner (deleteUser) faz sentido apagar a lista
+
             jedis.lpush(USER_BIDS_KEY+bid.getUserNickname()+":", mapper.writeValueAsString(bid));
             jedis.lpush(BIDS_AUCTION_KEY+bid.getAuctionId()+":", mapper.writeValueAsString(bid));
         } catch (JsonProcessingException e) {
@@ -176,6 +177,8 @@ public class RedisCache {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
             jedis.del(USER_KEY+nickname);
+            jedis.del(USER_AUCTIONS_KEY+nickname+":");
+            jedis.del(USER_BIDS_KEY+nickname+":");
         }
     }
 
