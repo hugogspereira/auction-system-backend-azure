@@ -121,15 +121,7 @@ public class RedisCache {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
             List<String> listOfAuctions = jedis.lrange(USER_AUCTIONS_KEY+nickname+":", 0, -1);
-            // TODO: Tentar ver algo deste genero para n estar a fazer o for
-            //List<AuctionDAO> list = mapper.readValue(listOfAuctions, AuctionDAO[].class);
-
-            //iterate over the auctions
-            List<AuctionDAO> resList = new ArrayList<>(listOfAuctions.size());
-            for(String auction : listOfAuctions) {
-                AuctionDAO auctionDAO = mapper.readValue(auction, AuctionDAO.class);
-                resList.add(auctionDAO);
-            }
+            List<AuctionDAO> resList = mapper.readValue(listOfAuctions.toString(), mapper.getTypeFactory().constructCollectionType(List.class, AuctionDAO.class));
             return resList;
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to get the auctions in cache.\n"+e.getMessage());
@@ -141,13 +133,7 @@ public class RedisCache {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
             List<String> listOfBids = jedis.lrange(USER_BIDS_KEY+nickname+":", 0, -1);
-            List<BidDAO> resList = new ArrayList<>(listOfBids.size());
-
-            //iterate over the bids
-            for(String bid : listOfBids) {
-                BidDAO bidDAO = mapper.readValue(bid, BidDAO.class);
-                resList.add(bidDAO);
-            }
+            List<BidDAO> resList = mapper.readValue(listOfBids.toString(), mapper.getTypeFactory().constructCollectionType(List.class, BidDAO.class));
             return resList;
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to get the bids in cache.\n"+e.getMessage());
@@ -159,13 +145,7 @@ public class RedisCache {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()){
             List<String> listOfBids = jedis.lrange(BIDS_AUCTION_KEY+auctionId+":", 0, -1);
-            List<BidDAO> resList = new ArrayList<>(listOfBids.size());
-
-            //iterate over the bids
-            for(String bid : listOfBids) {
-                BidDAO bidDAO = mapper.readValue(bid, BidDAO.class);
-                resList.add(bidDAO);
-            }
+            List<BidDAO> resList = mapper.readValue(listOfBids.toString(), mapper.getTypeFactory().constructCollectionType(List.class, BidDAO.class));
             return resList;
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to get the bids in cache.\n"+e.getMessage());
