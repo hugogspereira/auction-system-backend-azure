@@ -14,11 +14,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static scc.utils.AzureProperties.REDIS_KEY;
+import static scc.utils.AzureProperties.REDIS_URL;
+
 public class RedisCache {
 
     public static final boolean IS_ACTIVE = true;
-    private static final String RedisHostname = "scc2223cache4204.redis.cache.windows.net";
-    private static final String RedisKey = "?????=";
+    private static final String RedisHostname = System.getenv(REDIS_URL);
+    private static final String RedisKey = System.getenv(REDIS_KEY);
 
     private static JedisPool instance;
     private static RedisCache redisCache;

@@ -10,8 +10,10 @@ public class AzureProperties
 	public static final String COSMOSDB_KEY = "COSMOSDB_KEY";
 	public static final String COSMOSDB_URL = "COSMOSDB_URL";
 	public static final String COSMOSDB_DATABASE = "COSMOSDB_DATABASE";
+	public static final String REDIS_KEY = "REDIS_KEY";
+	public static final String REDIS_URL = "REDIS_URL";
 
-	public static final String PROPS_FILE = "azurekeys.props";
+	public static final String PROPS_FILE = "azurekeys-westeurope.props";
 	private static Properties props;
 	
 	public static synchronized Properties getProperties() {
