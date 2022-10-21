@@ -1,5 +1,6 @@
 package scc.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import scc.utils.AuctionStatus;
 
 public class Auction {
@@ -14,8 +15,8 @@ public class Auction {
     private String winnerBid;           //when auctionStatus is OPEN, this is used has the current winner
     private AuctionStatus status;
 
-    public Auction(String id, String title, String description, String photoId, String ownerNickname, String endTime,
-                   float minPrice, String winnerBid, AuctionStatus status) {
+    public Auction(@JsonProperty("id") String id, @JsonProperty("title") String title, @JsonProperty("description") String description, @JsonProperty("photoId") String photoId,
+                   @JsonProperty("ownerNickname") String ownerNickname, @JsonProperty("endTime") String endTime, @JsonProperty("minPrice") float minPrice, @JsonProperty("winnerBid") String winnerBid, @JsonProperty("status")  AuctionStatus status) {
         this.id = id;
         this.title = title;
         this.description = description;

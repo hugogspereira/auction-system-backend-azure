@@ -1,5 +1,7 @@
 package scc.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents a User, as returned to the clients
  */
@@ -10,7 +12,7 @@ public class User {
 	private String pwd;
 	private String photoId;
 
-	public User(String nickname, String name, String pwd, String photoId) {
+	public User(@JsonProperty("nickname") String nickname, @JsonProperty("name") String name, @JsonProperty("pwd") String pwd, @JsonProperty("photoId") String photoId) {
 		super();
 		this.nickname = nickname;
 		this.name = name;

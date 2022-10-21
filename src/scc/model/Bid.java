@@ -1,5 +1,7 @@
 package scc.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Bid {
 
     private String id;
@@ -7,7 +9,7 @@ public class Bid {
     private String userNickname;
     private float value;
 
-    public Bid(String id, String auctionId, String userNickname, float value) {
+    public Bid(@JsonProperty("id") String id, @JsonProperty("auctionId") String auctionId, @JsonProperty("userNickname") String userNickname, @JsonProperty("value") float value) {
         this.id = id;
         this.auctionId = auctionId;
         this.userNickname = userNickname;

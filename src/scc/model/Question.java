@@ -1,5 +1,7 @@
 package scc.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Question {
 
     public String id;
@@ -9,7 +11,7 @@ public class Question {
     public String userNickname;
     public String message;
 
-    public Question(String id, boolean reply, String questionId, String auctionId, String userNickname, String message) {
+    public Question(@JsonProperty("id") String id, @JsonProperty("reply") boolean reply, @JsonProperty("questionId") String questionId, @JsonProperty("auctionId") String auctionId, @JsonProperty("userNickname") String userNickname, @JsonProperty("message")  String message) {
         super();
         this.id = id;
         this.reply = reply;
