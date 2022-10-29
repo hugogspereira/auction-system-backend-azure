@@ -43,10 +43,6 @@ public class BlobStorageLayer {
             if(!blob.exists()) {
                 blob.upload(BinaryData.fromBytes(data));
             }
-            /*
-            DEBUG:
-            System.out.println( "File uploaded : " + filename);
-            */
         }
 
         public byte[] download(String photoId) {
@@ -57,21 +53,11 @@ public class BlobStorageLayer {
                 throw new WebApplicationException(Response.Status.NOT_FOUND);
             }
             BinaryData data = blob.downloadContent();
-            /*
-            DEBUG:
-            byte[] arr = data.toBytes();
-            System.out.println( "Blob size : " + arr.length);
-            */
-
             return data.toBytes();
         }
 
         public boolean existsBlob(String photoId) {
             BlobClient blob = blobContainerClient.getBlobClient(photoId);
-            /*
-            DEBUG:
-            System.out.println( "Blob exists : " + blob.exists());
-            */
             return blob.exists();
         }
 

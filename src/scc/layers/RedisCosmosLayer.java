@@ -38,7 +38,7 @@ public class RedisCosmosLayer {
 	public User putUser(User user) {
 		UserDAO userDao = new UserDAO(user);
 		try {
-			cosmosDBLayer.putUser(userDao);
+			cosmosDBLayer.putUser(userDao);			//TODO put the result of bd in cache (for all put methods)
 			if(RedisCache.IS_ACTIVE ) {
 				redisCache.putUser(userDao);
 			}

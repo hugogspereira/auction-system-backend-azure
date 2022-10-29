@@ -38,7 +38,8 @@ public class UsersResource {
         if(user == null || user.getNickname() == null || user.getName() == null || user.getPwd() == null || user.getPhotoId() == null) {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
-        else if(!blobStorageLayer.existsBlob(user.getPhotoId())) {
+        //TODO: check if users with that nickname already exists
+        if(!blobStorageLayer.existsBlob(user.getPhotoId())) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         // Create User

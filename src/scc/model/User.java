@@ -12,6 +12,10 @@ public class User {
 	private String pwd;
 	private String photoId;
 
+	public User() {
+
+	}
+
 	public User(@JsonProperty("nickname") String nickname, @JsonProperty("name") String name, @JsonProperty("pwd") String pwd, @JsonProperty("photoId") String photoId) {
 		super();
 		this.nickname = nickname;

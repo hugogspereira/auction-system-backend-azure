@@ -19,7 +19,7 @@ import static scc.utils.AzureProperties.REDIS_URL;
 
 public class RedisCache {
 
-    public static final boolean IS_ACTIVE = true;
+    public static final boolean IS_ACTIVE = false;
     private static final String RedisHostname = System.getenv(REDIS_URL);
     private static final String RedisKey = System.getenv(REDIS_KEY);
 

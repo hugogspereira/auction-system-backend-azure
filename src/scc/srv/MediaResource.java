@@ -1,16 +1,12 @@
 package scc.srv;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Response;
 import scc.layers.BlobStorageLayer;
 import scc.utils.Hash;
-import java.util.List;
 
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
 /**
@@ -20,6 +16,7 @@ import jakarta.ws.rs.core.MediaType;
 public class MediaResource
 {
 	BlobStorageLayer blob = BlobStorageLayer.getInstance();
+	ObjectMapper mapper = new ObjectMapper();
 
 	/**
 	 * Post a new image.The id of the image is its hash.
@@ -44,8 +41,8 @@ public class MediaResource
 	public byte[] download(@PathParam("id") String id) {
 		try {
 			return blob.download(id);
-		} catch (NotFoundException e) {
-			throw new NotFoundException("Image not found");
+		} catch (Exception e) {
+			throw new ClientErrorException("Image not found", Response.Status.NOT_FOUND);
 		}
 	}
 
@@ -55,7 +52,11 @@ public class MediaResource
 	@GET
 	@Path("/")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<String> list() {
-		return blob.list();
+	public String list() {
+		try {
+			return mapper.writeValueAsString(blob.list());
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
