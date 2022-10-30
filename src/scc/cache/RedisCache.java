@@ -1,7 +1,6 @@
 package scc.cache;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -10,9 +9,7 @@ import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
 import scc.dao.UserDAO;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static scc.utils.AzureProperties.REDIS_KEY;
 import static scc.utils.AzureProperties.REDIS_URL;
@@ -62,7 +59,7 @@ public class RedisCache {
     public void putUser(UserDAO user) {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
-            jedis.set(USER_KEY+user.getNickname(), mapper.writeValueAsString(user));
+            jedis.set(USER_KEY+user.getId(), mapper.writeValueAsString(user));
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the user in cache.\n"+e.getMessage());
         }

@@ -15,6 +15,7 @@ import scc.dao.BidDAO;
 import scc.dao.QuestionDAO;
 import scc.dao.UserDAO;
 
+import java.sql.SQLOutput;
 import java.util.Iterator;
 import java.util.List;
 
@@ -97,8 +98,8 @@ public class CosmosDBLayer {
 
 	public CosmosItemResponse<UserDAO> replaceUser(UserDAO user) {
 		init();
-		PartitionKey key = new PartitionKey(user.getNickname());
-		return users.replaceItem(user, user.getNickname(), key, new CosmosItemRequestOptions());
+		PartitionKey key = new PartitionKey(user.getId());
+		return users.replaceItem(user, user.getId(), key, new CosmosItemRequestOptions());
 	}
 
 	public CosmosPagedIterable<UserDAO> getUsers() {
@@ -136,7 +137,7 @@ public class CosmosDBLayer {
 
 	public List<AuctionDAO> getAuctionsByUser(String nickname) {
 		init();
-		CosmosPagedIterable<AuctionDAO> iterable = auctions.queryItems("SELECT * FROM auctions LEFT JOIN users ON auctions.ownerNickname=\"" + nickname + "\"", new CosmosQueryRequestOptions(), AuctionDAO.class);   //TODO: check query
+		CosmosPagedIterable<AuctionDAO> iterable = auctions.queryItems("SELECT * FROM auctions WHERE CONTAINS(auctions.ownerNickname,\"" + nickname + "\")", new CosmosQueryRequestOptions(), AuctionDAO.class);
 		return iterable.stream().toList();
 	}
 
@@ -148,13 +149,13 @@ public class CosmosDBLayer {
 
 	public List<BidDAO> getBidsByAuction(String auctionId) {
 		init();
-		CosmosPagedIterable<BidDAO> iterable = bids.queryItems("SELECT * FROM bids LEFT JOIN auctions ON bids.auctionId=\"" + auctionId + "\"", new CosmosQueryRequestOptions(), BidDAO.class);   //TODO: check query
+		CosmosPagedIterable<BidDAO> iterable = bids.queryItems("SELECT * FROM bids WHERE CONTAINS(bids.auctionId,\"" + auctionId + "\")", new CosmosQueryRequestOptions(), BidDAO.class);
 		return iterable.stream().toList();
 	}
 
 	public List<BidDAO> getBidsByUser(String nickname) {
 		init();
-		CosmosPagedIterable<BidDAO> iterable = bids.queryItems("SELECT * FROM bids LEFT JOIN users ON bids.userNickname=\"" + nickname + "\"", new CosmosQueryRequestOptions(), BidDAO.class);   //TODO: check query
+		CosmosPagedIterable<BidDAO> iterable = bids.queryItems("SELECT * FROM bids WHERE CONTAINS(bids.userNickname,\"" + nickname + "\")", new CosmosQueryRequestOptions(), BidDAO.class);
 		return iterable.stream().toList();
 	}
 
@@ -181,7 +182,7 @@ public class CosmosDBLayer {
 
 	public List<QuestionDAO> getQuestionsByAuctionId(String auctionId){
 		init();
-		CosmosPagedIterable<QuestionDAO> iterable = questions.queryItems("SELECT * FROM questions LEFT JOIN auctions ON questions.auctionId=\"" + auctionId + "\"", new CosmosQueryRequestOptions(), QuestionDAO.class);
+		CosmosPagedIterable<QuestionDAO> iterable = questions.queryItems("SELECT * FROM questions WHERE CONTAINS(questions.auctionId,\"" + auctionId + "\")", new CosmosQueryRequestOptions(), QuestionDAO.class);
 		return iterable.stream().toList();
 	}
 

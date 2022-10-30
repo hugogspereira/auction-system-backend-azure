@@ -1,12 +1,10 @@
 package scc.srv;
 
-import com.azure.cosmos.CosmosException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import scc.dao.AuctionDAO;
 import scc.layers.BlobStorageLayer;
-import scc.layers.CosmosDBLayer;
 import scc.layers.RedisCosmosLayer;
 import scc.model.Auction;
 import scc.utils.IdGenerator;
@@ -14,6 +12,7 @@ import scc.utils.IdGenerator;
 @Path(AuctionResource.PATH)
 public class AuctionResource {
 
+    //TODO: add auth
     //TODO: end auctions with azure functions
 
     public static final String PATH = "/auction";
@@ -48,8 +47,7 @@ public class AuctionResource {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public void updateAuction(@PathParam("id") String id, Auction auction) {
-        if(id == null || auction == null || auction.getId() == null || auction.getTitle() == null || auction.getDescription() == null ||
-                auction.getPhotoId() == null)
+        if(id == null || auction == null || auction.getTitle() == null || auction.getDescription() == null || auction.getPhotoId() == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
         AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(id);

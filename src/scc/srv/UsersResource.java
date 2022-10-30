@@ -18,15 +18,12 @@ import static scc.dao.AuctionDAO.DELETED_USER;
 public class UsersResource {
 
     public static final String PATH = "/user";
-    //private final CosmosDBLayer cosmosDBLayer;
+
     private final BlobStorageLayer blobStorageLayer;
-    //private final RedisCache redisCache;
     private final RedisCosmosLayer redisCosmosLayer;
 
     public UsersResource() {
-        //cosmosDBLayer = CosmosDBLayer.getInstance();
         blobStorageLayer = BlobStorageLayer.getInstance();
-        //redisCache = RedisCache.getInstance();
         redisCosmosLayer = RedisCosmosLayer.getInstance();
     }
 
@@ -35,10 +32,9 @@ public class UsersResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public User createUser(User user) {
-        if(user == null || user.getNickname() == null || user.getName() == null || user.getPwd() == null || user.getPhotoId() == null) {
+        if(user == null || user.getNickname() == null || user.getName() == null || user.getPwd() == null || user.getPhotoId() == null || redisCosmosLayer.getUserById(user.getNickname()) != null) {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
-        //TODO: check if users with that nickname already exists
         if(!blobStorageLayer.existsBlob(user.getPhotoId())) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
@@ -102,7 +98,7 @@ public class UsersResource {
         checkPwd(userDao.getPwd(), password);
         // Update User
         userDao.setName(user.getName());
-        userDao.setPwd(user.getPwd());
+        userDao.setPwd(Hash.of(user.getPwd()));
         userDao.setPhotoId(user.getPhotoId());
         redisCosmosLayer.replaceUser(userDao);
     }
