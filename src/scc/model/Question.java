@@ -29,7 +29,7 @@ public class Question {
         this.id = id;
     }
 
-    public boolean getReply() {
+    public boolean isReply() {
         return reply;
     }
 

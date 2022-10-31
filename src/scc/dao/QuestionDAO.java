@@ -27,7 +27,7 @@ public class QuestionDAO {
     }
 
     public QuestionDAO(Question question) {
-        this(question.getId(), question.getReply(), question.getQuestionId(), question.getAuctionId(), question.getUserNickname(), question.getMessage());
+        this(question.getId(), question.isReply(), question.getQuestionId(), question.getAuctionId(), question.getUserNickname(), question.getMessage());
     }
 
     public String get_rid() {
@@ -54,7 +54,7 @@ public class QuestionDAO {
         this.id = id;
     }
 
-    public boolean getReply() {
+    public boolean isReply() {
         return reply;
     }
 

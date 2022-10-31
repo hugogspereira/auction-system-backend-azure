@@ -9,9 +9,12 @@ import scc.dao.BidDAO;
 import scc.dao.UserDAO;
 import scc.layers.BlobStorageLayer;
 import scc.layers.RedisCosmosLayer;
+import scc.model.Auction;
 import scc.model.User;
 import scc.utils.Hash;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import static scc.dao.AuctionDAO.DELETED_USER;
 
 @Path(UsersResource.PATH)
@@ -63,6 +66,8 @@ public class UsersResource {
         if(auctions.stream().anyMatch(auctionDAO -> auctionDAO.isOpen())) {
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         }
+        //TODO: check if user has a bid on open auctions
+
         // Delete User
         try {
             auctions.forEach(auctionDAO -> {
@@ -106,6 +111,26 @@ public class UsersResource {
     private void checkPwd(String expectedPwd, String pwd) {
         if(!expectedPwd.equals(Hash.of(pwd))) {
             throw new WebApplicationException(Response.Status.FORBIDDEN);
+        }
+    }
+
+    @GET
+    @Path("/{nickname}/auction/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Auction> listUserAuctions(@PathParam("nickname") String nickname) {
+        if(nickname == null)
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        if(redisCosmosLayer.getUserById(nickname) == null)
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+
+        try {
+            List<AuctionDAO> auctionsDAO = redisCosmosLayer.getAuctionsByUser(nickname);
+            if(auctionsDAO == null)
+                return null;
+            return auctionsDAO.stream().map(auctionDAO -> auctionDAO.toAuction()).collect(Collectors.toList());
+        } catch(Exception e) {
+            throw new WebApplicationException(e);
         }
     }
 }

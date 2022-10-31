@@ -6,9 +6,11 @@ import jakarta.ws.rs.WebApplicationException;
 import scc.cache.RedisCache;
 import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
+import scc.dao.QuestionDAO;
 import scc.dao.UserDAO;
 import scc.model.Auction;
 import scc.model.Bid;
+import scc.model.Question;
 import scc.model.User;
 
 import java.util.List;
@@ -198,4 +200,22 @@ public class RedisCosmosLayer {
 		}
 		return bidsDao;
 	}
+
+
+	// methods not using cache
+
+	public QuestionDAO getQuestionById(String id) {
+		return cosmosDBLayer.getQuestionById(id);
+	}
+
+	public Question putQuestion(Question question) {
+		QuestionDAO questionDAO = new QuestionDAO(question);
+		cosmosDBLayer.putQuestion(questionDAO);
+		return question;
+	}
+
+	public List<QuestionDAO> getQuestionsByAuctionId(String id) {
+		return cosmosDBLayer.getQuestionsByAuctionId(id);
+	}
+
 }

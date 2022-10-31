@@ -1,25 +1,35 @@
 package scc.srv;
 
+import com.azure.cosmos.CosmosException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import scc.dao.AuctionDAO;
+import scc.dao.BidDAO;
+import scc.dao.QuestionDAO;
+import scc.dao.UserDAO;
 import scc.layers.BlobStorageLayer;
 import scc.layers.RedisCosmosLayer;
 import scc.model.Auction;
+import scc.model.Bid;
+import scc.model.Question;
+import scc.utils.AuctionStatus;
 import scc.utils.IdGenerator;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Path(AuctionResource.PATH)
 public class AuctionResource {
 
     //TODO: add auth
     //TODO: end auctions with azure functions
+    //TODO: when does an auction becomes DELETED?
 
     public static final String PATH = "/auction";
 
     private final RedisCosmosLayer redisCosmosLayer;
     private final BlobStorageLayer blobStorageLayer;
-
 
     public AuctionResource() {
         redisCosmosLayer = RedisCosmosLayer.getInstance();
@@ -58,5 +68,113 @@ public class AuctionResource {
         auctionDAO.setDescription(auction.getDescription());
         auctionDAO.setPhotoId(auction.getPhotoId());
         redisCosmosLayer.replaceAuction(auctionDAO);
+    }
+
+    // -------- Bids --------
+
+    @POST
+    @Path("/{id}/bid/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Bid createBid(@PathParam("id") String auctionId, Bid bid) {
+        if(bid == null || auctionId == null || bid.getUserNickname() == null || bid.getValue() <= 0)
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+        AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(auctionId);
+        UserDAO userDAO = redisCosmosLayer.getUserById(bid.getUserNickname());
+        if(auctionDAO == null || userDAO == null)
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        if(!auctionDAO.getStatus().equals(AuctionStatus.OPEN) || auctionDAO.getOwnerNickname().equals(bid.getUserNickname()))
+            throw new WebApplicationException(Response.Status.FORBIDDEN);
+        if(!auctionDAO.isNewValue(bid.getValue()))
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+        bid.setId(IdGenerator.generate());
+        bid.setAuctionId(auctionId);
+
+        auctionDAO.setWinnerBid(bid.getId());
+        auctionDAO.setWinningValue(bid.getValue());
+        return redisCosmosLayer.putBid(bid,auctionDAO);
+    }
+
+    @GET
+    @Path("/{id}/bid/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Bid> listBids(@PathParam("id") String auctionId) {
+        if(auctionId == null)
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+        AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(auctionId);
+        if(auctionDAO == null)
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+
+        try {
+            List<BidDAO> bidsDAO = redisCosmosLayer.getBidsByAuction(auctionId);
+            if(bidsDAO == null)
+                return null;
+            return bidsDAO.stream().map(bidDAO -> bidDAO.toBid()).collect(Collectors.toList());
+        } catch(Exception e) {
+            throw new WebApplicationException(e);
+        }
+    }
+
+    // -------- Questions --------
+
+    @POST
+    @Path("/{id}/question/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Question createQuestion(@PathParam("id") String auctionId, Question question) {
+        if (auctionId == null || question == null || question.getMessage() == null || question.getUserNickname() == null)
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+        AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(auctionId);
+        if(redisCosmosLayer.getUserById(question.getUserNickname()) == null || auctionDAO == null)
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+
+        //in case of a reply, check if the question exists and if the user is the owner of the auction
+        if(question.isReply()){
+            if(redisCosmosLayer.getQuestionById(question.getQuestionId()) == null)
+                throw new WebApplicationException(Response.Status.NOT_FOUND);
+            if(!auctionDAO.getOwnerNickname().equals(question.getUserNickname()))
+                throw new WebApplicationException(Response.Status.FORBIDDEN);
+        }
+
+        question.setId(IdGenerator.generate());
+        question.setAuctionId(auctionId);
+        if (question.isReply()) {
+            question.setQuestionId(question.getQuestionId());
+        } else {
+            question.setQuestionId(question.getId());
+        }
+
+        try {
+            redisCosmosLayer.putQuestion(question);
+        } catch (CosmosException e) {
+            throw new WebApplicationException(e.getStatusCode());
+        }
+        return question;
+    }
+
+    @GET
+    @Path("/{id}/question/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Question> listQuestions(@PathParam("id") String auctionId) {
+        if (auctionId == null)
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(auctionId);
+        if(auctionDAO == null)
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+
+        try {
+            List<QuestionDAO> list = redisCosmosLayer.getQuestionsByAuctionId(auctionId);
+            if(list == null)
+                return null;
+            //removes all replies
+            list = list.stream().filter(questionDAO -> !questionDAO.isReply()).collect(Collectors.toList());
+            return list.stream().map(QuestionDAO::toQuestion).collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new WebApplicationException(e);
+        }
     }
 }
