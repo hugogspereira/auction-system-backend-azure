@@ -21,7 +21,7 @@ public class TestQuestions {
             CosmosItemResponse<UserDAO> resUser = null;
             //create a user that is an owner of an auction named "owner"
             UserDAO owner = new UserDAO();
-            owner.setNickname(id1);
+            owner.setId(id1);
             owner.setName("owner");
             owner.setPwd("super_secret");
             owner.setPhotoId("0:34253455");
@@ -30,7 +30,7 @@ public class TestQuestions {
             //create a new user named "client" and add it to the database
             String id2 = "0:" + System.currentTimeMillis();
             UserDAO client = new UserDAO();
-            client.setNickname(id2);
+            client.setId(id2);
             client.setName("client");
             client.setPwd("super_secret");
             client.setPhotoId("0:34253455");
@@ -44,7 +44,7 @@ public class TestQuestions {
             auction.setTitle("auction");
             auction.setDescription("this is an auction");
             auction.setPhotoId("0:34253455");
-            auction.setOwnerNickname(owner.getNickname());
+            auction.setOwnerNickname(owner.getName());
             auction.setEndTime(Long.toString((System.currentTimeMillis() + 1000000)));
             auction.setMinPrice(10);
             resAuction = db.putAuction(auction);
@@ -56,7 +56,7 @@ public class TestQuestions {
             question.setId(id4);
             question.setQuestionId(id4);
             question.setAuctionId(auction.getId());
-            question.setUserNickname(client.getNickname());
+            question.setUserNickname(client.getName());
             question.setMessage("this is a question");
             question.setReply(false);
             resQuestion = db.putQuestion(question);
@@ -72,7 +72,7 @@ public class TestQuestions {
             reply.setId(id5);
             reply.setQuestionId(id4);
             reply.setAuctionId(auction.getId());
-            reply.setUserNickname(client.getNickname());
+            reply.setUserNickname(client.getName());
             reply.setMessage("this is a reply");
             reply.setReply(true);
             resQuestion = db.putQuestion(reply);
@@ -83,7 +83,7 @@ public class TestQuestions {
             question2.setId(id6);
             question2.setQuestionId(id6);
             question2.setAuctionId(auction.getId());
-            question2.setUserNickname(client.getNickname());
+            question2.setUserNickname(client.getName());
             question2.setMessage("this is another question");
             question2.setReply(false);
             resQuestion = db.putQuestion(question2);
