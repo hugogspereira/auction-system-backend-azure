@@ -2,17 +2,27 @@ package scc.srv;
 
 import com.azure.cosmos.CosmosException;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
+/*import javax.ws.rs.core.Cookie;*/
+/*import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
+import javax.ws.rs.core.Response;*/
+import scc.auth.AuthSession;
 import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
 import scc.dao.UserDAO;
 import scc.layers.BlobStorageLayer;
 import scc.layers.RedisCosmosLayer;
 import scc.model.Auction;
+import scc.model.Login;
 import scc.model.User;
 import scc.utils.Hash;
+
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static scc.dao.AuctionDAO.DELETED_USER;
@@ -24,10 +34,12 @@ public class UsersResource {
 
     private final BlobStorageLayer blobStorageLayer;
     private final RedisCosmosLayer redisCosmosLayer;
+    private final AuthSession auth;
 
     public UsersResource() {
         blobStorageLayer = BlobStorageLayer.getInstance();
         redisCosmosLayer = RedisCosmosLayer.getInstance();
+        auth = AuthSession.getInstance();
     }
 
     @POST
@@ -35,10 +47,10 @@ public class UsersResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public User createUser(User user) {
-        if(user == null || user.getNickname() == null || user.getName() == null || user.getPwd() == null || user.getPhotoId() == null || redisCosmosLayer.getUserById(user.getNickname()) != null) {
+        if (user == null || user.getNickname() == null || user.getName() == null || user.getPwd() == null || user.getPhotoId() == null || redisCosmosLayer.getUserById(user.getNickname()) != null) {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
-        if(!blobStorageLayer.existsBlob(user.getPhotoId())) {
+        if (!blobStorageLayer.existsBlob(user.getPhotoId())) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         // Create User
@@ -50,20 +62,20 @@ public class UsersResource {
     @Path("/{nickname}")
     @Produces(MediaType.APPLICATION_JSON)
     public User deleteUser(@PathParam("nickname") String nickname, @QueryParam("password") String password) {
-        if(nickname == null || password == null) {
+        if (nickname == null || password == null) {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
         // Get User
         UserDAO userDao = redisCosmosLayer.getUserById(nickname);
         // See if User exists
-        if(userDao == null) {
+        if (userDao == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         checkPwd(userDao.getPwd(), password);
 
         // Check if there is not an OPEN auction
         List<AuctionDAO> auctions = redisCosmosLayer.getAuctionsByUser(nickname);
-        if(auctions.stream().anyMatch(auctionDAO -> auctionDAO.isOpen())) {
+        if (auctions.stream().anyMatch(auctionDAO -> auctionDAO.isOpen())) {
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         }
         //TODO: check if user has a bid on open auctions
@@ -90,14 +102,19 @@ public class UsersResource {
     @PUT
     @Path("/{nickname}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void updateUser(@PathParam("nickname") String nickname, @QueryParam("password") String password, User user) {
-        if(nickname == null || password == null || user == null || user.getName() == null || user.getPwd() == null || user.getPhotoId() == null) {
+    public void updateUser(@CookieParam("scc:session") Cookie session, @PathParam("nickname") String nickname, @QueryParam("password") String password, User user) {
+        if (nickname == null || password == null || user == null || user.getName() == null || user.getPwd() == null || user.getPhotoId() == null) {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
+
+        if(session == null || auth.checkSession(session, nickname).equals(nickname)) {
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        }
+
         // Get User
         UserDAO userDao = redisCosmosLayer.getUserById(nickname);
         // See if User exists
-        if(userDao == null || !blobStorageLayer.existsBlob(user.getPhotoId())) {
+        if (userDao == null || !blobStorageLayer.existsBlob(user.getPhotoId())) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         checkPwd(userDao.getPwd(), password);
@@ -109,7 +126,7 @@ public class UsersResource {
     }
 
     private void checkPwd(String expectedPwd, String pwd) {
-        if(!expectedPwd.equals(Hash.of(pwd))) {
+        if (!expectedPwd.equals(Hash.of(pwd))) {
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         }
     }
@@ -119,18 +136,55 @@ public class UsersResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public List<Auction> listUserAuctions(@PathParam("nickname") String nickname) {
-        if(nickname == null)
+        if (nickname == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
-        if(redisCosmosLayer.getUserById(nickname) == null)
+        if (redisCosmosLayer.getUserById(nickname) == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
         try {
             List<AuctionDAO> auctionsDAO = redisCosmosLayer.getAuctionsByUser(nickname);
-            if(auctionsDAO == null)
+            if (auctionsDAO == null)
                 return null;
             return auctionsDAO.stream().map(auctionDAO -> auctionDAO.toAuction()).collect(Collectors.toList());
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new WebApplicationException(e);
         }
+    }
+
+    @POST
+    @Path("/auth")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response auth(Login user) {
+
+        String id = user.getId();
+        String pwd = user.getPwd();
+
+        if (id == null || pwd == null) {
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+
+        UserDAO userDAO = redisCosmosLayer.getUserById(id);
+
+        if (userDAO == null) {
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        }
+        if (!userDAO.getPwd().equals(Hash.of(pwd))) {
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        }
+
+        String uid = UUID.randomUUID().toString();
+        NewCookie cookie = new NewCookie.Builder("scc:session")
+                .value(uid)
+                .path("/")
+                .comment("sessionid")
+                .maxAge(3600)
+                .secure(false)
+                .httpOnly(true)
+                .build();
+/*
+        NewCookie cookie = new NewCookie("scc:session", uid, "/", null, "sessionid", 3600, false, true);
+*/
+        auth.putSession(uid, id);
+        return Response.ok().cookie(cookie).build();
     }
 }
