@@ -28,6 +28,10 @@ public class RedisCache {
     private static final String USER_AUCTIONS_KEY = "user_auctions_";
     private static final String USER_BIDS_KEY = "user_bids_";
     private static final String BIDS_AUCTION_KEY = "bids_auction_";
+    private static final String SESSION_KEY = "session:";
+
+    private static final int SESSION_EXP_TEST = 60;
+    private static final int SESSION_EXP_TIME = 3600;
 
     public RedisCache() {
         getCachePool();
@@ -91,10 +95,25 @@ public class RedisCache {
         }
     }
 
+    public void putSession(String sessionId, String userId) {
+        String cacheId = SESSION_KEY+sessionId;
+        try(Jedis jedis = RedisCache.getCachePool().getResource()) {
+            jedis.set(cacheId, userId);
+            jedis.expire(cacheId, SESSION_EXP_TEST);
+        } catch (Exception e) {
+            System.out.println("Redis Cache: unable to put the session in cache.\n"+e.getMessage());
+        }
+    }
+
     public boolean existUser(String nickname) {
-        ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
             return jedis.exists(USER_KEY+nickname);
+        }
+    }
+
+    public boolean existSession(String sessionId) {
+        try(Jedis jedis = RedisCache.getCachePool().getResource()) {
+            return jedis.exists(SESSION_KEY+sessionId);
         }
     }
 
@@ -161,6 +180,12 @@ public class RedisCache {
         }
     }
 
+    public String getSession(String sessionId) {
+        try(Jedis jedis = RedisCache.getCachePool().getResource()) {
+            return jedis.get(SESSION_KEY+sessionId);
+        }
+    }
+
     public void deleteUser(String nickname) {
         try(Jedis jedis = instance.getResource()) {
             jedis.del(USER_KEY+nickname);
@@ -169,4 +194,9 @@ public class RedisCache {
         }
     }
 
+    public void deleteSession(String sessionId) {
+        try(Jedis jedis = instance.getResource()) {
+            jedis.del(SESSION_KEY+sessionId);
+        }
+    }
 }

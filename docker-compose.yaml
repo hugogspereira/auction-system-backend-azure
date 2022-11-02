@@ -1,0 +1,19 @@
+version: '3'
+services:
+  tomcat-dev:
+    build: .
+    container_name: scc-2223
+    ports:
+      - "8080:8080"
+      - "8009:8009"
+    environment:
+      - BlobStoreConnection=${BLOBSTORE_CONNECTION}
+      - COSMOSDB_DATABASE=${COSMOSDB_DATABASE}
+      - COSMOSDB_KEY=${COSMOSDB_KEY}
+      - COSMOSDB_URL=${COSMOSDB_URL}
+      - REDIS_KEY=${REDIS_KEY}
+      - REDIS_URL=${REDIS_URL}
+
+    volumes:
+      - ./target/scc2223-proj1-1.0.war:/usr/local/tomcat/webapps/scc2223-proj1-1.0.war
+    restart: always
