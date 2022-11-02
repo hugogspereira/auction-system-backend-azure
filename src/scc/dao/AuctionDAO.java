@@ -14,7 +14,7 @@ public class AuctionDAO {
     private String description;
     private String photoId;
     private String ownerNickname;
-    private String endTime;             //type?
+    private String endTime;
     private float minPrice;
     private String winnerBid;
     private AuctionStatus status;
@@ -110,7 +110,7 @@ public class AuctionDAO {
     }
 
     public Auction toAuction() {
-        return new Auction(id, title, description, photoId, ownerNickname, endTime, minPrice, winnerBid, status);
+        return new Auction(status, id, title, description, photoId, ownerNickname, endTime, minPrice, winnerBid);
     }
 
     public float getWinningValue() {

@@ -2,6 +2,8 @@ package scc.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import scc.utils.AuctionStatus;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 public class Auction {
 
@@ -17,6 +19,18 @@ public class Auction {
 
     public Auction(@JsonProperty("id") String id, @JsonProperty("title") String title, @JsonProperty("description") String description, @JsonProperty("photoId") String photoId,
                    @JsonProperty("ownerNickname") String ownerNickname, @JsonProperty("endTime") String endTime, @JsonProperty("minPrice") float minPrice, @JsonProperty("winnerBid") String winnerBid, @JsonProperty("status") AuctionStatus status) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.photoId = photoId;
+        this.ownerNickname = ownerNickname;
+        this.endTime = ZonedDateTime.parse(endTime).withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime().toString();
+        this.minPrice = minPrice;
+        this.winnerBid = winnerBid;
+        this.status = status;
+    }
+    // Teve de se criar este construtor para quando passamos de AuctionDao para Auction porque se usássemos o já existente iria dar erro pois estaria a fazer duas vezes o parse do ZonedDateTime
+    public Auction(AuctionStatus status, String id, String title, String description, String photoId, String ownerNickname, String endTime, float minPrice, String winnerBid) {
         this.id = id;
         this.title = title;
         this.description = description;

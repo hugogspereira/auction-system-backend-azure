@@ -216,4 +216,7 @@ public class RedisCosmosLayer {
 		return cosmosDBLayer.getQuestionsByAuctionId(id);
 	}
 
+	public List<AuctionDAO> getAuctionAboutToClose() {
+		return cosmosDBLayer.getAuctionsAboutToClose();
+	}
 }

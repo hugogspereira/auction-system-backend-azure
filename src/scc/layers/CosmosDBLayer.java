@@ -14,8 +14,9 @@ import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
 import scc.dao.QuestionDAO;
 import scc.dao.UserDAO;
-
-import java.sql.SQLOutput;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Iterator;
 import java.util.List;
 
@@ -138,6 +139,18 @@ public class CosmosDBLayer {
 	public List<AuctionDAO> getAuctionsByUser(String nickname) {
 		init();
 		CosmosPagedIterable<AuctionDAO> iterable = auctions.queryItems("SELECT * FROM auctions WHERE CONTAINS(auctions.ownerNickname,\"" + nickname + "\")", new CosmosQueryRequestOptions(), AuctionDAO.class);
+		return iterable.stream().toList();
+	}
+
+	public List<AuctionDAO> getAuctionsAboutToClose() {
+		init();
+
+		LocalDate now = LocalDate.now(ZoneId.systemDefault());
+		LocalDateTime beginNow = LocalDateTime.of(now.getYear(), now.getMonth(), now.getDayOfMonth(), 0, 0, 0);
+		LocalDateTime endNow = LocalDateTime.of(now.getYear(), now.getMonth(), now.getDayOfMonth(), 23, 59, 59);
+
+		CosmosPagedIterable<AuctionDAO> iterable = auctions.queryItems("SELECT * FROM auctions WHERE auctions.endTime BETWEEN '"+beginNow.toString()+"' and '"+endNow.toString()+"'", new CosmosQueryRequestOptions(), AuctionDAO.class);
+
 		return iterable.stream().toList();
 	}
 

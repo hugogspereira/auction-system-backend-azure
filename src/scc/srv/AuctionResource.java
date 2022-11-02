@@ -15,7 +15,6 @@ import scc.model.Bid;
 import scc.model.Question;
 import scc.utils.AuctionStatus;
 import scc.utils.IdGenerator;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -173,6 +172,26 @@ public class AuctionResource {
             //removes all replies
             list = list.stream().filter(questionDAO -> !questionDAO.isReply()).collect(Collectors.toList());
             return list.stream().map(QuestionDAO::toQuestion).collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new WebApplicationException(e);
+        }
+    }
+
+    @GET
+    @Path("/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Auction> listAuctionsAboutToClose() {
+        try {
+            List<AuctionDAO> auctionsDAO = redisCosmosLayer.getAuctionAboutToClose();
+            System.out.println(auctionsDAO != null);
+            if(auctionsDAO != null) {
+                for (AuctionDAO auctionDAO :auctionsDAO) {
+                    System.out.println(auctionDAO.toString());
+                }
+            }
+            if (auctionsDAO == null)
+                return null;
+            return auctionsDAO.stream().map(AuctionDAO::toAuction).collect(Collectors.toList());
         } catch (Exception e) {
             throw new WebApplicationException(e);
         }
