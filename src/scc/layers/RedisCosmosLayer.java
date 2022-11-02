@@ -1,7 +1,6 @@
 package scc.layers;
 
 import com.azure.cosmos.CosmosException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.WebApplicationException;
 import scc.cache.RedisCache;
 import scc.dao.AuctionDAO;
@@ -12,7 +11,6 @@ import scc.model.Auction;
 import scc.model.Bid;
 import scc.model.Question;
 import scc.model.User;
-
 import java.util.List;
 
 /**
