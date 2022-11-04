@@ -1,0 +1,44 @@
+config:
+  # target: "TYPE HERE THE DEPLOYED TARGET"
+  target: "http://localhost:8080/scc2223-proj1-1.0/rest"
+  http:
+    timeout: 10
+  plugins:
+    metrics-by-endpoint: {}
+  processor: "./test-utils.js"
+  variables:
+    metricsProcessEndpoint: "myProcessEndpoint" # function used to aggregate endpoints for statistics
+  phases:
+    - name: "Create auctions" # Create auctions
+      duration: 1
+      arrivalCount: 1
+
+scenarios:
+  - name: "Create auctions"
+    weight: 1
+    flow:
+      - loop:
+        - "selectUserToLogin" # Select a user to login
+        - "selectImage" # Select an image to use in the auction
+        - post:
+          url: "/user/auth"
+          headers:
+            Content-Type: application/json
+          json:
+            id: "{{ nickname }}"
+            pwd: "{{ pwd }}"
+        - function: "genNewAuction" # Generate the needed information for the auction
+        - post:
+          url: "/auction"
+          headers:
+            Content-Type: application/json
+            Accept: application/json
+          json:
+            title: "{{ title }}"
+            description: "{{ description }}"
+            photoId: "{{ imageId }}"
+            ownerNickname: "{{ nickname }}"
+            endTime: "{{ endTime }}"
+            minPrice: "{{ minPrice }}"
+          afterResponse: "processNewAuctionReply" # capture result and store in file
+            

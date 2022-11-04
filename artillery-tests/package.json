@@ -1,0 +1,17 @@
+{
+  "name": "artillery-tests",
+  "version": "1.0.0",
+  "description": "tests for the Azure Cloud project for SCC",
+  "main": "test-utils.js",
+  "scripts": {
+    "create-users": "artillery run create-users.yml"
+  },
+  "author": "Pipa",
+  "license": "ISC",
+  "dependencies": {
+    "@faker-js/faker": "^7.6.0",
+    "artillery": "^2.0.0-24",
+    "artillery-plugin-metrics-by-endpoint": "github:preguica/artillery-plugin-metrics-by-endpoint",
+    "node-fetch": "^3.2.10"
+  }
+}
