@@ -22,6 +22,7 @@ public class AuthSession {
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         String session = cookie.getValue();
+        System.out.println("Session: " + session);
         if (session == null || !cache.existSession(session) || !cache.getSession(session).equals(sessionId)) {
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
@@ -33,14 +34,14 @@ public class AuthSession {
     }
 
     public String getSession(Cookie session) {
-        if (session != null) {
-            return cache.getSession(session.getValue());
+        if (session == null || session.getValue() == null) {
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
-        throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        return cache.getSession(session.getValue());
     }
 
-    public void deleteSession(String sessionId) {
-        cache.deleteSession(sessionId);
+    public void deleteSession(Cookie session) {
+        cache.deleteSession(session.getValue());
     }
 
 }

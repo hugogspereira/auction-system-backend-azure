@@ -6,10 +6,6 @@ import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
-/*import javax.ws.rs.core.Cookie;*/
-/*import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;*/
 import scc.auth.AuthSession;
 import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
@@ -61,10 +57,13 @@ public class UsersResource {
     @DELETE
     @Path("/{nickname}")
     @Produces(MediaType.APPLICATION_JSON)
-    public User deleteUser(@PathParam("nickname") String nickname, @QueryParam("password") String password) {
+    public User deleteUser(@CookieParam("scc:session") Cookie session, @PathParam("nickname") String nickname, @QueryParam("password") String password) {
         if (nickname == null || password == null) {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
+
+        auth.checkSession(session, nickname);
+
         // Get User
         UserDAO userDao = redisCosmosLayer.getUserById(nickname);
         // See if User exists
@@ -93,6 +92,8 @@ public class UsersResource {
             });
             // TODO: maybe garbage collector
             redisCosmosLayer.deleteUser(nickname);
+            //delete the cookie auth
+            auth.deleteSession(session);
         } catch (CosmosException e) {
             throw new WebApplicationException(e.getStatusCode());
         }
@@ -107,9 +108,7 @@ public class UsersResource {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
 
-        if(session == null || auth.checkSession(session, nickname).equals(nickname)) {
-            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
-        }
+        auth.checkSession(session, nickname);
 
         // Get User
         UserDAO userDao = redisCosmosLayer.getUserById(nickname);
@@ -135,9 +134,12 @@ public class UsersResource {
     @Path("/{nickname}/auction/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Auction> listUserAuctions(@PathParam("nickname") String nickname) {
+    public List<Auction> listUserAuctions(@CookieParam("scc:session") Cookie session, @PathParam("nickname") String nickname) {
         if (nickname == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+        auth.checkSession(session, nickname);
+
         if (redisCosmosLayer.getUserById(nickname) == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
@@ -181,9 +183,7 @@ public class UsersResource {
                 .secure(false)
                 .httpOnly(true)
                 .build();
-/*
-        NewCookie cookie = new NewCookie("scc:session", uid, "/", null, "sessionid", 3600, false, true);
-*/
+
         auth.putSession(uid, id);
         return Response.ok().cookie(cookie).build();
     }

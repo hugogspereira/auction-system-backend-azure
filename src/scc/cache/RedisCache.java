@@ -99,7 +99,7 @@ public class RedisCache {
         String cacheId = SESSION_KEY+sessionId;
         try(Jedis jedis = RedisCache.getCachePool().getResource()) {
             jedis.set(cacheId, userId);
-            jedis.expire(cacheId, SESSION_EXP_TEST);
+            jedis.expire(cacheId, SESSION_EXP_TIME);
         } catch (Exception e) {
             System.out.println("Redis Cache: unable to put the session in cache.\n"+e.getMessage());
         }
@@ -195,7 +195,7 @@ public class RedisCache {
     }
 
     public void deleteSession(String sessionId) {
-        try(Jedis jedis = instance.getResource()) {
+        try(Jedis jedis = RedisCache.getCachePool().getResource()) {
             jedis.del(SESSION_KEY+sessionId);
         }
     }

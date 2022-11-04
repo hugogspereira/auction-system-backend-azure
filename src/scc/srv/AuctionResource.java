@@ -2,8 +2,10 @@ package scc.srv;
 
 import com.azure.cosmos.CosmosException;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import scc.auth.AuthSession;
 import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
 import scc.dao.QuestionDAO;
@@ -29,21 +31,25 @@ public class AuctionResource {
 
     private final RedisCosmosLayer redisCosmosLayer;
     private final BlobStorageLayer blobStorageLayer;
+    private final AuthSession auth;
 
     public AuctionResource() {
         redisCosmosLayer = RedisCosmosLayer.getInstance();
         blobStorageLayer = BlobStorageLayer.getInstance();
+        auth = AuthSession.getInstance();
     }
 
     @POST
     @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Auction createAuction(Auction auction) {
+    public Auction createAuction(@CookieParam("scc:session") Cookie session, Auction auction) {
         if(auction == null || auction.getTitle() == null || auction.getDescription() == null || auction.getPhotoId() == null ||
                 auction.getOwnerNickname() == null || auction.getEndTime() == null || auction.getMinPrice() <= 0 ||
                 redisCosmosLayer.getUserById(auction.getOwnerNickname()) == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+        auth.checkSession(session, auction.getOwnerNickname());
 
         if(!blobStorageLayer.existsBlob(auction.getPhotoId()))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -55,9 +61,11 @@ public class AuctionResource {
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void updateAuction(@PathParam("id") String id, Auction auction) {
+    public void updateAuction(@CookieParam("scc:session") Cookie session, @PathParam("id") String id, Auction auction) {
         if(id == null || auction == null || auction.getTitle() == null || auction.getDescription() == null || auction.getPhotoId() == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+        auth.checkSession(session, auction.getOwnerNickname());
 
         AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(id);
         if(auctionDAO == null || !blobStorageLayer.existsBlob(auction.getPhotoId()))
@@ -75,9 +83,11 @@ public class AuctionResource {
     @Path("/{id}/bid/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Bid createBid(@PathParam("id") String auctionId, Bid bid) {
+    public Bid createBid(@CookieParam("scc:session") Cookie session, @PathParam("id") String auctionId, Bid bid) {
         if(bid == null || auctionId == null || bid.getUserNickname() == null || bid.getValue() <= 0)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+        auth.checkSession(session, bid.getUserNickname());
 
         AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(auctionId);
         UserDAO userDAO = redisCosmosLayer.getUserById(bid.getUserNickname());
@@ -99,9 +109,13 @@ public class AuctionResource {
     @GET
     @Path("/{id}/bid/")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Bid> listBids(@PathParam("id") String auctionId) {
+    public List<Bid> listBids(@CookieParam("scc:session") Cookie session, @PathParam("id") String auctionId) {
         if(auctionId == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+        //TODO: check this
+        String uid = auth.getSession(session);
+        auth.checkSession(session, uid);
 
         AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(auctionId);
         if(auctionDAO == null)
@@ -123,9 +137,11 @@ public class AuctionResource {
     @Path("/{id}/question/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Question createQuestion(@PathParam("id") String auctionId, Question question) {
+    public Question createQuestion(@CookieParam("scc:session") Cookie session, @PathParam("id") String auctionId, Question question) {
         if (auctionId == null || question == null || question.getMessage() == null || question.getUserNickname() == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+        auth.checkSession(session, question.getUserNickname());
 
         AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(auctionId);
         if(redisCosmosLayer.getUserById(question.getUserNickname()) == null || auctionDAO == null)
@@ -158,9 +174,13 @@ public class AuctionResource {
     @GET
     @Path("/{id}/question/")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Question> listQuestions(@PathParam("id") String auctionId) {
+    public List<Question> listQuestions(@CookieParam("scc:session") Cookie session, @PathParam("id") String auctionId) {
         if (auctionId == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+        String uid = auth.getSession(session);
+        auth.checkSession(session, uid);
+
         AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(auctionId);
         if(auctionDAO == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -180,7 +200,11 @@ public class AuctionResource {
     @GET
     @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Auction> listAuctionsAboutToClose() {
+    public List<Auction> listAuctionsAboutToClose(@CookieParam("scc:session") Cookie session) {
+
+        String uid = auth.getSession(session);
+        auth.checkSession(session, uid);
+
         try {
             List<AuctionDAO> auctionsDAO = redisCosmosLayer.getAuctionAboutToClose();
             System.out.println(auctionsDAO != null);
