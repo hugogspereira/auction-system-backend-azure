@@ -1,0 +1,36 @@
+config:
+  # target: "TYPE HERE THE DEPLOYED TARGET"
+  target: "http://localhost:8080/scc2223-proj1-1.0/rest"
+  http:
+    timeout: 10
+  plugins:
+    metrics-by-endpoint: {}
+  processor: "./test-utils.js"
+  variables:
+    metricsProcessEndpoint: "myProcessEndpoint" # function used to aggregate endpoints for statistics
+  phases:
+    - name: "Login user" # Login user and save cookie test
+      duration: 1
+      arrivalCount: 1
+
+scenarios:
+  - name: "Login user"
+    weight: 1
+    flow:
+      - loop:
+          - function: "selectUserToLogin" # Select a user to login
+          - post:
+              url: "/user/auth"
+              headers:
+                Content-Type: application/json
+                Accept: application/json
+              json:
+                id: "{{ nickname }}"
+                pwd: "{{ pwd }}"
+              capture:
+                header: "set-cookie"
+                as: "cookie"
+              afterResponse: "processLoginReply" # capture result and store in file
+          # log the cookie
+          - log: "this is the cookie: {{ cookie[0] }}"
+        count: 1 # 10 users

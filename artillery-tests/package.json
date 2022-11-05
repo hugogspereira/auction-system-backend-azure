@@ -4,7 +4,8 @@
   "description": "tests for the Azure Cloud project for SCC",
   "main": "test-utils.js",
   "scripts": {
-    "create-users": "artillery run create-users.yml"
+    "create-users": "artillery run create-users.yml",
+    "create-auctions": "artillery run create-auctions.yml"
   },
   "author": "Pipa",
   "license": "ISC",

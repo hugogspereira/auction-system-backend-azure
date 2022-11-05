@@ -13,32 +13,44 @@ config:
       duration: 1
       arrivalCount: 1
 
+before:
+  flow:
+    - function: "selectUserToLogin"
+    - post:
+        url: "/user/auth"
+        headers:
+          Content-Type: application/json
+          Accept: application/json
+        json:
+          id: "{{ nickname }}"
+          pwd: "{{ pwd }}"
+        capture:
+          header: "set-cookie"
+          as: "cookie"
+    # log the cookie
+    - log: "this is the cookie: {{ cookie[0] }}"
+    
 scenarios:
   - name: "Create auctions"
     weight: 1
     flow:
       - loop:
-        - "selectUserToLogin" # Select a user to login
-        - "selectImage" # Select an image to use in the auction
-        - post:
-          url: "/user/auth"
-          headers:
-            Content-Type: application/json
-          json:
-            id: "{{ nickname }}"
-            pwd: "{{ pwd }}"
-        - function: "genNewAuction" # Generate the needed information for the auction
-        - post:
-          url: "/auction"
-          headers:
-            Content-Type: application/json
-            Accept: application/json
-          json:
-            title: "{{ title }}"
-            description: "{{ description }}"
-            photoId: "{{ imageId }}"
-            ownerNickname: "{{ nickname }}"
-            endTime: "{{ endTime }}"
-            minPrice: "{{ minPrice }}"
-          afterResponse: "processNewAuctionReply" # capture result and store in file
-            
+          - function: "selectImageId" # Select an image to use in the auction
+          - function: "genNewAuction" # Generate the needed information for the auction
+          - post:
+              url: "/auction"
+              headers:
+                Content-Type: application/json
+                Accept: application/json
+                Cookie: "{{ cookie[0] }}"
+              json:
+                title: "{{ title }}"
+                description: "{{ description }}"
+                photoId: "{{ imageId }}"
+                ownerNickname: "{{ nickname }}"
+                endTime: "{{ endTime }}"
+                minPrice: "{{ minPrice }}"
+              afterResponse: "processNewAuctionReply" # capture result and store in file
+              expect:
+                - statusCode: 200
+        count: 1
