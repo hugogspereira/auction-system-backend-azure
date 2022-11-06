@@ -5,7 +5,8 @@
   "main": "test-utils.js",
   "scripts": {
     "create-users": "artillery run create-users.yml",
-    "create-auctions": "artillery run create-auctions.yml"
+    "create-auctions": "artillery run create-auctions.yml",
+    "create-bids": "artillery run create-bids.yml"
   },
   "author": "Pipa",
   "license": "ISC",

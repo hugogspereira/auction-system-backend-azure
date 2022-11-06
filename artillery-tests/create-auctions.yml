@@ -29,7 +29,7 @@ before:
           as: "cookie"
     # log the cookie
     - log: "this is the cookie: {{ cookie[0] }}"
-    
+
 scenarios:
   - name: "Create auctions"
     weight: 1
@@ -53,4 +53,4 @@ scenarios:
               afterResponse: "processNewAuctionReply" # capture result and store in file
               expect:
                 - statusCode: 200
-        count: 1
+        count: 5 # number of auctions to create

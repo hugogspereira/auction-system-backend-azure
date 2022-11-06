@@ -1,3 +1,4 @@
+#THIS IS A TEST TO 
 config:
   # target: "TYPE HERE THE DEPLOYED TARGET"
   target: "http://localhost:8080/scc2223-proj1-1.0/rest"
@@ -30,7 +31,6 @@ scenarios:
               capture:
                 header: "set-cookie"
                 as: "cookie"
-              afterResponse: "processLoginReply" # capture result and store in file
           # log the cookie
           - log: "this is the cookie: {{ cookie[0] }}"
         count: 1 # 10 users

@@ -6,9 +6,7 @@ let imagesIds = [];
 let images = [];
 let users = [];
 let auctions = [];
-let cookie = [];
-
-let usertemp = null;
+let bids = [];
 
 /**
  *  All endpoints starting with the following prefixes
@@ -18,6 +16,7 @@ let statsPrefix = [
   ["/rest/media/", "GET"],
   ["/rest/media", "POST"],
   ["/rest/user", "POST"],
+  ["/rest/user/auth", "POST"],
   ["/rest/auction", "POST"],
 ];
 
@@ -47,7 +46,7 @@ function random(val) {
 
 // Loads data about images from disk
 function loadData() {
-  var basedir;
+  let basedir;
   if (fs.existsSync("/images")) basedir = "/images";
   else basedir = "images";
   fs.readdirSync(basedir).forEach((file) => {
@@ -56,6 +55,16 @@ function loadData() {
       images.push(img);
     }
   });
+
+  let str;
+  if (fs.existsSync("users.data")) {
+    str = fs.readFileSync("users.data");
+    users = JSON.parse(str);
+  }
+  if (fs.existsSync("auctions.data")) {
+    str = fs.readFileSync("auctions.data");
+    auctions = JSON.parse(str);
+  }
 }
 
 loadData();
@@ -170,6 +179,29 @@ function processLoginReply(requestParams, response, context, ee, next) {
   return next();
 }
 
+/**
+ * Process reply of auction bid and store the object on disk
+ */
+function processNewBidReply(requestParams, response, context, ee, next) {
+  if (
+    response.statusCode >= 200 &&
+    response.statusCode < 300 &&
+    response.body.length > 0
+  ) {
+    let b = JSON.parse(response.body);
+    bids.push(b);
+    fs.writeFileSync("bids.data", JSON.stringify(bids));
+
+    //update auction on disk
+    let a = auctions.find((a) => a.id == b.auctionId);
+    let tmp = a;
+    a.winnerBid = b.value;
+    auctions.splice(auctions.indexOf(tmp), 1, a);
+    fs.writeFileSync("auctions.data", JSON.stringify(auctions));
+  }
+  return next();
+}
+
 /*****************************************************
  ********************** SELECTORS ********************
  *****************************************************/
@@ -218,6 +250,40 @@ function selectImageToDownload(context, events, done) {
   return done();
 }
 
+/**
+ * Select an auction and a user to bid.
+ * If the user is the owner of the auction, select another user.
+ */
+function selectAuctionAndUserToBid(context, events, done) {
+  let a, u;
+
+  //Get the auction
+  if (auctions.length > 0) {
+    a = auctions.sample();
+  }
+
+  context.vars.auctionId = a.id;
+
+  if (a.winnerBid == null) {
+    context.vars.value = a.minPrice + 1;
+  } else {
+    context.vars.value = a.winnerBid + 1;
+  }
+
+  //Get the user who's bidding
+  if (users.length > 0) {
+    u = users.sample();
+    while (u.nickname == a.ownerNickname) {
+      u = users.sample();
+    }
+  }
+
+  context.vars.userNickname = u.nickname;
+  context.vars.userPwd = u.pwd;
+
+  return done();
+}
+
 module.exports = {
   uploadImageBody,
   genNewUser,
@@ -226,7 +292,9 @@ module.exports = {
   processNewUserReply,
   processNewAuctionReply,
   processLoginReply,
+  processNewBidReply,
   selectImageId,
   selectUserToLogin,
   selectImageToDownload,
+  selectAuctionAndUserToBid,
 };

@@ -1,0 +1,47 @@
+config:
+  # target: "TYPE HERE THE DEPLOYED TARGET"
+  target: "http://localhost:8080/scc2223-proj1-1.0/rest"
+  http:
+    timeout: 10
+  plugins:
+    metrics-by-endpoint: {}
+  processor: "./test-utils.js"
+  variables:
+    metricsProcessEndpoint: "myProcessEndpoint" # function used to aggregate endpoints for statistics
+  phases:
+    - name: "Create auctions" # Create auctions
+      duration: 1
+      arrivalCount: 1
+
+scenarios:
+  - name: "Create bids"
+    weight: 1
+    flow:
+      - loop:
+          - function: "selectAuctionAndUserToBid" # Select auction and user to bid
+          - post:
+              url: "/user/auth"
+              headers:
+                Content-Type: application/json
+                Accept: application/json
+              json:
+                id: "{{ userNickname }}"
+                pwd: "{{ userPwd }}"
+              capture:
+                header: "set-cookie"
+                as: "cookie"
+            # log the cookie
+          - log: "this is the cookie: {{ cookie[0] }}"
+          - post:
+              url: "/auction/{{auctionId}}/bid"
+              headers:
+                Content-Type: application/json
+                Accept: application/json
+                Cookie: "{{ cookie[0] }}"
+              json:
+                userNickname: "{{ userNickname }}"
+                value: "{{ value }}"
+              afterResponse: "processNewBidReply" # capture result and store in file
+              expect:
+                - statusCode: 200
+        count: 5 # number of bids to create
