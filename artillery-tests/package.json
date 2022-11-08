@@ -6,7 +6,8 @@
   "scripts": {
     "create-users": "artillery run create-users.yml",
     "create-auctions": "artillery run create-auctions.yml",
-    "create-bids": "artillery run create-bids.yml"
+    "create-bids": "artillery run create-bids.yml",
+    "create-questions": "artillery run create-questions.yml"
   },
   "author": "Pipa",
   "license": "ISC",

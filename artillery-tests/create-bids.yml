@@ -9,7 +9,7 @@ config:
   variables:
     metricsProcessEndpoint: "myProcessEndpoint" # function used to aggregate endpoints for statistics
   phases:
-    - name: "Create auctions" # Create auctions
+    - name: "Create bids" # Create bids
       duration: 1
       arrivalCount: 1
 

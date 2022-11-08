@@ -7,6 +7,7 @@ let images = [];
 let users = [];
 let auctions = [];
 let bids = [];
+let questions = [];
 
 /**
  *  All endpoints starting with the following prefixes
@@ -18,6 +19,7 @@ let statsPrefix = [
   ["/rest/user", "POST"],
   ["/rest/user/auth", "POST"],
   ["/rest/auction", "POST"],
+  ["/rest/*/bid", "POST"],
 ];
 
 /*****************************************************
@@ -64,6 +66,14 @@ function loadData() {
   if (fs.existsSync("auctions.data")) {
     str = fs.readFileSync("auctions.data");
     auctions = JSON.parse(str);
+  }
+  if (fs.existsSync("images.data")) {
+    str = fs.readFileSync("images.data");
+    imagesIds = JSON.parse(str);
+  }
+  if (fs.existsSync("bids.data")) {
+    str = fs.readFileSync("bids.data");
+    bids = JSON.parse(str);
   }
 }
 
@@ -193,11 +203,27 @@ function processNewBidReply(requestParams, response, context, ee, next) {
     fs.writeFileSync("bids.data", JSON.stringify(bids));
 
     //update auction on disk
-    let a = auctions.find((a) => a.id == b.auctionId);
+    let a = auctions.find((a) => a.id === b.auctionId);
     let tmp = a;
     a.winnerBid = b.value;
     auctions.splice(auctions.indexOf(tmp), 1, a);
     fs.writeFileSync("auctions.data", JSON.stringify(auctions));
+  }
+  return next();
+}
+
+/**
+ * Process reply of questions and store the object on disk
+ */
+function processNewQuestionReply(requestParams, response, context, ee, next) {
+  if (
+    response.statusCode >= 200 &&
+    response.statusCode < 300 &&
+    response.body.length > 0
+  ) {
+    let q = JSON.parse(response.body);
+    questions.push(q);
+    fs.writeFileSync("questions.data", JSON.stringify(questions));
   }
   return next();
 }
@@ -284,6 +310,57 @@ function selectAuctionAndUserToBid(context, events, done) {
   return done();
 }
 
+/**
+ * Select an auction and a user to ask a question.
+ * If the user is the owner of the auction, select another user.
+ */
+function selectUserToAskQuestion(context, events, done) {
+  let a, u;
+
+  //Get the auction
+  if (auctions.length > 0) {
+    a = auctions.sample();
+  }
+
+  context.vars.auctionId = a.id;
+
+  //Get the user who's asking the question
+  if (users.length > 0) {
+    u = users.sample();
+    while (u.nickname === a.ownerNickname) {
+      u = users.sample();
+    }
+  }
+
+  context.vars.userNickname = u.nickname;
+  context.vars.userPwd = u.pwd;
+  context.vars.question = faker.lorem.sentence();
+
+  return done();
+}
+
+/**
+ * Select owner of the auctionId in context to give a reply.
+ */
+function selectOwnerToReply(context, events, done) {
+  let a, u;
+
+  //Get the auction
+  a = auctions.find((a) => a.id === context.vars.auctionId);
+
+  //Get the user who's replying the question
+  if (users.length > 0) {
+    u = users.find((u) => u.nickname === a.ownerNickname);
+  }
+
+  context.vars.ownerNickname = u.nickname;
+  context.vars.ownerPwd = u.pwd;
+  context.vars.replyMessage = faker.lorem.sentence();
+  context.vars.reply = true;
+
+  return done();
+}
+
 module.exports = {
   uploadImageBody,
   genNewUser,
@@ -293,8 +370,11 @@ module.exports = {
   processNewAuctionReply,
   processLoginReply,
   processNewBidReply,
+  processNewQuestionReply,
   selectImageId,
   selectUserToLogin,
   selectImageToDownload,
   selectAuctionAndUserToBid,
+  selectUserToAskQuestion,
+  selectOwnerToReply,
 };
