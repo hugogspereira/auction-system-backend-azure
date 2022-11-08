@@ -9,6 +9,8 @@ let auctions = [];
 let bids = [];
 let questions = [];
 
+//TODO: update SELECTORS to no longer fetch from disk
+
 /**
  *  All endpoints starting with the following prefixes
  *  will be aggregated in the same for the statistics
@@ -118,6 +120,18 @@ function genNewAuction(context, events, done) {
   return done();
 }
 
+/**
+ * Generate data for the update of an user
+ */
+function genUserUpdate(context, events, done) {
+  context.vars.name = `${faker.name.firstName()} ${faker.name.lastName()}`;
+
+  let user = users.find((u) => u.nickname === context.vars.nickname);
+  context.vars.photoId = user.photoId;
+
+  return done();
+}
+
 /*****************************************************
  ****************** REPLY PROCESSORS *****************
  *****************************************************/
@@ -224,6 +238,35 @@ function processNewQuestionReply(requestParams, response, context, ee, next) {
     let q = JSON.parse(response.body);
     questions.push(q);
     fs.writeFileSync("questions.data", JSON.stringify(questions));
+  }
+  return next();
+}
+
+/**
+ * Process reply of user deletion and remove the user from disk.
+ */
+function processDeleteUserReply(requestParams, response, context, ee, next) {
+  if (response.statusCode >= 200 && response.statusCode < 300) {
+    let u = users.find((u) => u.nickname === context.vars.userNickname);
+    users.splice(users.indexOf(u), 1);
+    fs.writeFileSync("users.data", JSON.stringify(users));
+  }
+  return next();
+}
+
+/**
+ * Process reply of user update and update the user in disk.
+ */
+function processUpdateUserReply(requestParams, response, context, ee, next) {
+  if (
+    response.statusCode >= 200 &&
+    response.statusCode < 300 &&
+    response.body.length > 0
+  ) {
+    let u = JSON.parse(response.body);
+    let tmp = users.find((u) => u.nickname === context.vars.nickname);
+    users.splice(users.indexOf(tmp), 1, u);
+    fs.writeFileSync("users.data", JSON.stringify(users));
   }
   return next();
 }
@@ -365,12 +408,15 @@ module.exports = {
   uploadImageBody,
   genNewUser,
   genNewAuction,
+  genUserUpdate,
   processUploadImageReply,
   processNewUserReply,
   processNewAuctionReply,
   processLoginReply,
   processNewBidReply,
   processNewQuestionReply,
+  processDeleteUserReply,
+  processUpdateUserReply,
   selectImageId,
   selectUserToLogin,
   selectImageToDownload,

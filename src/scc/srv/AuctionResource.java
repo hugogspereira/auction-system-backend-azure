@@ -113,7 +113,6 @@ public class AuctionResource {
         if(auctionId == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
-        //TODO: check this
         String uid = auth.getSession(session);
         auth.checkSession(session, uid);
 

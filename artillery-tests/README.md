@@ -15,3 +15,5 @@ npm run [TEST]
 ```
 
 where [TEST] is the filename of the yml file you wish to run.
+
+Please check the scripts in package.json, since there are now scripts that allow you to run several tests in series.

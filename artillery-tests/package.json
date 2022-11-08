@@ -7,7 +7,12 @@
     "create-users": "artillery run create-users.yml",
     "create-auctions": "artillery run create-auctions.yml",
     "create-bids": "artillery run create-bids.yml",
-    "create-questions": "artillery run create-questions.yml"
+    "create-questions": "artillery run create-questions.yml",
+    "update-users": "artillery run update-users.yml",
+    "delete-users": "artillery run delete-users.yml",
+    "clean": "node cleanDisk.js",
+    "create-all": "npm run create-users && npm run create-auctions && npm run create-bids && npm run create-questions && npm run clean",
+    "test-users": "npm run create-users && npm run update-users && npm run delete-users && npm run clean"
   },
   "author": "Pipa",
   "license": "ISC",

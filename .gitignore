@@ -2,3 +2,5 @@
 .env
 tests/
 target/
+artillery-tests/node_modules/
+artillery-tests/*.data
