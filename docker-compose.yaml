@@ -13,6 +13,9 @@ services:
       - COSMOSDB_URL=${COSMOSDB_URL}
       - REDIS_KEY=${REDIS_KEY}
       - REDIS_URL=${REDIS_URL}
+      - COGNITIVESEARCH_QUERYKEY=${COGNITIVESEARCH_QUERYKEY}
+      - COGNITIVESEARCH_INDEX=${COGNITIVESEARCH_INDEX}
+      - COGNITIVESEARCH_URL=${COGNITIVESEARCH_URL}
 
     volumes:
       - ./target/scc2223-proj1-1.0.war:/usr/local/tomcat/webapps/scc2223-proj1-1.0.war

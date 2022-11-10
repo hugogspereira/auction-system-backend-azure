@@ -96,6 +96,11 @@
       <artifactId>jedis</artifactId>  
       <version>4.2.3</version> 
     </dependency>
+    <dependency>
+      <groupId>com.azure</groupId>
+      <artifactId>azure-search-documents</artifactId>
+      <version>11.5.1</version>
+    </dependency>
   </dependencies>  
   <build> 
     <sourceDirectory>src</sourceDirectory>  

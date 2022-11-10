@@ -12,6 +12,9 @@ public class AzureProperties
 	public static final String COSMOSDB_DATABASE = "COSMOSDB_DATABASE";
 	public static final String REDIS_KEY = "REDIS_KEY";
 	public static final String REDIS_URL = "REDIS_URL";
+	public static final String COGNITIVESEARCH_QUERYKEY = "COGNITIVESEARCH_QUERYKEY";
+	public static final String COGNITIVESEARCH_URL = "COGNITIVESEARCH_URL";
+	public static final String COGNITIVESEARCH_INDEX = "COGNITIVESEARCH_INDEX";
 
 	public static final String PROPS_FILE = "azurekeys-westeurope.props";
 	private static Properties props;

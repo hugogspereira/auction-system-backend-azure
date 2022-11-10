@@ -12,6 +12,7 @@
     "delete-users": "artillery run delete-users.yml",
     "clean": "node cleanDisk.js",
     "create-all": "npm run create-users && npm run create-auctions && npm run create-bids && npm run create-questions && npm run clean",
+    "create-all-noclean": "npm run create-users && npm run create-auctions && npm run create-bids && npm run create-questions",
     "test-users": "npm run create-users && npm run update-users && npm run delete-users && npm run clean"
   },
   "author": "Pipa",

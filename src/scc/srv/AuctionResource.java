@@ -11,6 +11,7 @@ import scc.dao.BidDAO;
 import scc.dao.QuestionDAO;
 import scc.dao.UserDAO;
 import scc.layers.BlobStorageLayer;
+import scc.layers.CognitiveSearchLayer;
 import scc.layers.RedisCosmosLayer;
 import scc.model.Auction;
 import scc.model.Bid;
@@ -18,12 +19,12 @@ import scc.model.Question;
 import scc.utils.AuctionStatus;
 import scc.utils.IdGenerator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Path(AuctionResource.PATH)
 public class AuctionResource {
 
-    //TODO: add auth
     //TODO: end auctions with azure functions
     //TODO: when does an auction becomes DELETED?
 
@@ -32,11 +33,13 @@ public class AuctionResource {
     private final RedisCosmosLayer redisCosmosLayer;
     private final BlobStorageLayer blobStorageLayer;
     private final AuthSession auth;
+    private final CognitiveSearchLayer searchLayer;
 
     public AuctionResource() {
         redisCosmosLayer = RedisCosmosLayer.getInstance();
         blobStorageLayer = BlobStorageLayer.getInstance();
         auth = AuthSession.getInstance();
+        searchLayer = CognitiveSearchLayer.getInstance();
     }
 
     @POST
@@ -75,6 +78,22 @@ public class AuctionResource {
         auctionDAO.setDescription(auction.getDescription());
         auctionDAO.setPhotoId(auction.getPhotoId());
         redisCosmosLayer.replaceAuction(auctionDAO);
+    }
+
+    @GET
+    @Path("/search")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<List<Map.Entry<String, Object>>> searchAuctions(@CookieParam("scc:session") Cookie session, @QueryParam("query") String query) {
+        if(query == null)
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+        String nickname = auth.getSession(session);
+        if(nickname == null)
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+        auth.checkSession(session, nickname);
+
+        return searchLayer.searchAuctions(query);
     }
 
     // -------- Bids --------
