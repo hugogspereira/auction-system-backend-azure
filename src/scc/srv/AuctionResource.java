@@ -1,6 +1,8 @@
 package scc.srv;
 
 import com.azure.cosmos.CosmosException;
+import com.azure.search.documents.util.SearchPagedIterable;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.MediaType;
@@ -83,7 +85,7 @@ public class AuctionResource {
     @GET
     @Path("/search")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<List<Map.Entry<String, Object>>> searchAuctions(@CookieParam("scc:session") Cookie session, @QueryParam("query") String query) {
+    public List<Object> searchAuction(@CookieParam("scc:session") Cookie session, @QueryParam("query") String query) {
         if(query == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 

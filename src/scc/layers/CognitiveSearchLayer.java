@@ -10,7 +10,6 @@ import com.azure.search.documents.util.SearchPagedResponse;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class CognitiveSearchLayer {
 
@@ -39,22 +38,22 @@ public class CognitiveSearchLayer {
         this.sc = sc;
     }
 
-    public List<List<Map.Entry<String, Object>>> searchAuctions(String query) {
+
+    public List<Object> searchAuctions(String query) {
 
         SearchOptions options = new SearchOptions()
                 .setIncludeTotalCount(true)
+                .setSelect("id", "title", "description", "ownerNickname", "endTime")
+                .setSearchFields("title", "description")
                 .setTop(10);
 
         SearchPagedIterable spi = sc.search(query, options, null);
 
-        List<List<Map.Entry<String, Object>>> results = new ArrayList<>();
+        List<Object> results = new ArrayList<>();
 
         for(SearchPagedResponse resultResponse : spi.iterableByPage()) {
             resultResponse.getValue().forEach(searchResult -> {
-                List<Map.Entry<String, Object>> message = new ArrayList<>(searchResult
-                        .getDocument(SearchDocument.class)
-                        .entrySet());
-                results.add(message);
+                results.add(searchResult.getDocument(SearchDocument.class));
             });
         }
 
