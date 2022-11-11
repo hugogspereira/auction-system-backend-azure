@@ -14,12 +14,15 @@ import scc.dao.QuestionDAO;
 import scc.dao.UserDAO;
 import scc.layers.BlobStorageLayer;
 import scc.layers.CognitiveSearchLayer;
+import scc.layers.CosmosDBLayer;
 import scc.layers.RedisCosmosLayer;
 import scc.model.Auction;
 import scc.model.Bid;
 import scc.model.Question;
 import scc.utils.AuctionStatus;
 import scc.utils.IdGenerator;
+
+import java.text.Bidi;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,12 +37,14 @@ public class AuctionResource {
 
     private final RedisCosmosLayer redisCosmosLayer;
     private final BlobStorageLayer blobStorageLayer;
+    private final CosmosDBLayer cosmosDBLayer;
     private final AuthSession auth;
     private final CognitiveSearchLayer searchLayer;
 
     public AuctionResource() {
         redisCosmosLayer = RedisCosmosLayer.getInstance();
         blobStorageLayer = BlobStorageLayer.getInstance();
+        cosmosDBLayer = CosmosDBLayer.getInstance();
         auth = AuthSession.getInstance();
         searchLayer = CognitiveSearchLayer.getInstance();
     }
@@ -130,12 +135,24 @@ public class AuctionResource {
     @GET
     @Path("/{id}/bid/")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Bid> listBids(@CookieParam("scc:session") Cookie session, @PathParam("id") String auctionId) {
+    public List<Bid> listBids(@CookieParam("scc:session") Cookie session, @PathParam("id") String auctionId, @HeaderParam("Cache-Control") String cacheControl) {
         if(auctionId == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
         String uid = auth.getSession(session);
         auth.checkSession(session, uid);
+
+        //this is for testing purposes only
+        if(cacheControl != null && cacheControl.equals("no-store")){
+            AuctionDAO auctionDAO = cosmosDBLayer.getAuctionById(auctionId);
+            if(auctionDAO == null)
+                throw new WebApplicationException(Response.Status.NOT_FOUND);
+            List<BidDAO> list = cosmosDBLayer.getBidsByAuction(auctionId);
+            if(list == null){
+                return null;
+            }
+            return list.stream().map(BidDAO::toBid).collect(Collectors.toList());
+        }
 
         AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(auctionId);
         if(auctionDAO == null)
