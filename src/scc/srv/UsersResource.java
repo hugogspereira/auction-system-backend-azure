@@ -15,6 +15,7 @@ import scc.layers.RedisCosmosLayer;
 import scc.model.Auction;
 import scc.model.Login;
 import scc.model.User;
+import scc.utils.AuctionStatus;
 import scc.utils.Hash;
 
 import java.util.List;
@@ -54,6 +55,7 @@ public class UsersResource {
         return redisCosmosLayer.putUser(user);
     }
 
+    //TODO: test this method for new changes
     @DELETE
     @Path("/{nickname}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -77,15 +79,23 @@ public class UsersResource {
         if (auctions.stream().anyMatch(auctionDAO -> auctionDAO.isOpen())) {
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         }
-        //TODO: check if user has a bid on open auctions
+
+        // Check if user has a bid on open auctions
+        List<BidDAO> bids = redisCosmosLayer.getBidsByUser(nickname);
+        if(bids.stream().anyMatch(bidDAO -> {
+            AuctionDAO auction = redisCosmosLayer.getAuctionById(bidDAO.getAuctionId());
+            return auction == null || auction.isOpen();
+        })) {
+            throw new WebApplicationException(Response.Status.FORBIDDEN);
+        }
 
         // Delete User
         try {
             auctions.forEach(auctionDAO -> {
                 auctionDAO.setOwnerNickname(DELETED_USER);
+                auctionDAO.setStatus(AuctionStatus.DELETED);
                 redisCosmosLayer.replaceAuction(auctionDAO);
             });
-            List<BidDAO> bids = redisCosmosLayer.getBidsByUser(nickname);
             bids.forEach(bidDAO -> {
                 bidDAO.setUserNickname(DELETED_USER);
                 redisCosmosLayer.replaceBid(bidDAO);

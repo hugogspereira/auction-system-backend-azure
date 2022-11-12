@@ -1,0 +1,798 @@
+{
+	"info": {
+		"_postman_id": "0e0f029e-5b85-4dce-ba48-e3cedb44f6da",
+		"name": "SCC",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Upload Media",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/octet-stream",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "file",
+					"file": {
+						"src": "/home/bcalvo/Desktop/javaicon.png"
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/media/",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"media",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Download Media",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/media/2",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"media",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"nickname\": \"n1\",\n    \"name\": \"A\",\n    \"pwd\": \"123\",\n    \"photoId\": \"20C0DD121332986CD118E8F7D28E46DA3D7FC102\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/user/",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"user",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create User (1 param null)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"nickname\": \"n1\",\n    \"name\": null,\n    \"pwd\": \"123\",\n    \"photoId\": \"3\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/user/",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"user",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create User (user = null)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/user/",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"user",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create User (photoId not exists)",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"nickname\": \"n1\",\n    \"name\": \"Br\",\n    \"pwd\": \"123\",\n    \"photoId\": \"2\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/user/",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"user",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete User (nickname not exists)",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/user/boas?password=123",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"user",
+						"boas"
+					],
+					"query": [
+						{
+							"key": "password",
+							"value": "123"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete User (password mal)",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/user/n1?password=aaa",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"user",
+						"n1"
+					],
+					"query": [
+						{
+							"key": "password",
+							"value": "aaa"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete User (n1)",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/user/n1?password=123",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"user",
+						"n1"
+					],
+					"query": [
+						{
+							"key": "password",
+							"value": "123"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update User (param null)",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": null,\n    \"pwd\": \"123\",\n    \"photoId\": \"2\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/user/n1?password=123",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"user",
+						"n1"
+					],
+					"query": [
+						{
+							"key": "password",
+							"value": "123"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update User (nickname not exists)",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"B\",\n    \"pwd\": \"123\",\n    \"photoId\": \"2\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/user/n50?password=123",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"user",
+						"n50"
+					],
+					"query": [
+						{
+							"key": "password",
+							"value": "123"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update User (wrong password)",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"B\",\n    \"pwd\": \"123\",\n    \"photoId\": \"20C0DD121332986CD118E8F7D28E46DA3D7FC102\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/user/n1?password=321",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"user",
+						"n1"
+					],
+					"query": [
+						{
+							"key": "password",
+							"value": "321"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update User (photoId not exists)",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"B\",\n    \"pwd\": \"123\",\n    \"photoId\": \"2\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/user/n1?password=123",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"user",
+						"n1"
+					],
+					"query": [
+						{
+							"key": "password",
+							"value": "123"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update User",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"B\",\n    \"pwd\": \"321\",\n    \"photoId\": \"20C0DD121332986CD118E8F7D28E46DA3D7FC102\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/user/n1?password=123",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"user",
+						"n1"
+					],
+					"query": [
+						{
+							"key": "password",
+							"value": "123"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Auction",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"auction1\",\n    \"description\": \"BOOK\",\n    \"photoId\": \"20C0DD121332986CD118E8F7D28E46DA3D7FC102\",\n    \"ownerNickname\": \"n1\",\n    \"endTime\": \"2:30\",\n    \"minPrice\": 1.0\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/auction/",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"auction",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Auction",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"NEW\",\n    \"description\": \"NEW PC\",\n    \"photoId\": \"20C0DD121332986CD118E8F7D28E46DA3D7FC102\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/auction/fe296a20-c618-405f-9e6f-9922dac89f0f",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"auction",
+						"fe296a20-c618-405f-9e6f-9922dac89f0f"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Bid",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userNickname\":\"n2\",\n    \"value\": 2.5\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/auction/fe296a20-c618-405f-9e6f-9922dac89f0f/bid/",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"auction",
+						"fe296a20-c618-405f-9e6f-9922dac89f0f",
+						"bid",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Bids",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/auction/fe296a20-c618-405f-9e6f-9922dac89f0f/bid/",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"auction",
+						"fe296a20-c618-405f-9e6f-9922dac89f0f",
+						"bid",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Question",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userNickname\":\"n2\",\n    \"message\": \"Is that working?\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/auction/fe296a20-c618-405f-9e6f-9922dac89f0f/question/",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"auction",
+						"fe296a20-c618-405f-9e6f-9922dac89f0f",
+						"question",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Reply",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userNickname\":\"n1\",\n    \"reply\": true,\n    \"message\": \"Yeap\",\n    \"questionId\": \"c8dd2efc-c023-418d-9878-7d1d707fc4a8\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/auction/fe296a20-c618-405f-9e6f-9922dac89f0f/question/",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"auction",
+						"fe296a20-c618-405f-9e6f-9922dac89f0f",
+						"question",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Questions",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/auction/fe296a20-c618-405f-9e6f-9922dac89f0f/question/",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"auction",
+						"fe296a20-c618-405f-9e6f-9922dac89f0f",
+						"question",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List User Auctions",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"url": {
+					"raw": "https://scc23appwesteuropeabh.azurewebsites.net/rest/user/n1/auction/",
+					"protocol": "https",
+					"host": [
+						"scc23appwesteuropeabh",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"rest",
+						"user",
+						"n1",
+						"auction",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 public class AuctionResource {
 
     //TODO: end auctions with azure functions
-    //TODO: when does an auction becomes DELETED?
 
     public static final String PATH = "/auction";
 
