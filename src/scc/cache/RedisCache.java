@@ -6,11 +6,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import scc.dao.AuctionDAO;
-import scc.dao.BidDAO;
 import scc.dao.UserDAO;
-import java.util.Collection;
-import java.util.List;
-
 import static scc.utils.AzureProperties.REDIS_KEY;
 import static scc.utils.AzureProperties.REDIS_URL;
 
@@ -24,11 +20,7 @@ public class RedisCache {
     private static RedisCache redisCache;
 
     private static final String AUCTION_KEY = "auction:";
-    private static final String BID_KEY = "bid:";
     private static final String USER_KEY = "user:";
-    private static final String USER_AUCTIONS_KEY = "user_auctions_";
-    private static final String USER_BIDS_KEY = "user_bids_";
-    private static final String BIDS_AUCTION_KEY = "bids_auction_";
     private static final String SESSION_KEY = "session:";
 
     private static final int SESSION_EXP_TIME = 3600;
@@ -88,12 +80,6 @@ public class RedisCache {
             jedis.expire(cacheId, SESSION_EXP_TIME);
         } catch (Exception e) {
             System.out.println("Redis Cache: unable to put the session in cache.\n"+e.getMessage());
-        }
-    }
-
-    public boolean existUser(String nickname) {
-        try(Jedis jedis = instance.getResource()) {
-            return jedis.exists(USER_KEY+nickname);
         }
     }
 

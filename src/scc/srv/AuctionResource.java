@@ -1,8 +1,6 @@
 package scc.srv;
 
 import com.azure.cosmos.CosmosException;
-import com.azure.search.documents.util.SearchPagedIterable;
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.MediaType;
@@ -21,10 +19,7 @@ import scc.model.Bid;
 import scc.model.Question;
 import scc.utils.AuctionStatus;
 import scc.utils.IdGenerator;
-
-import java.text.Bidi;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Path(AuctionResource.PATH)
