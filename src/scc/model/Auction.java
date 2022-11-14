@@ -12,10 +12,10 @@ public class Auction {
     private String description;
     private String photoId;
     private String ownerNickname;
-    private String endTime;             //TODO - type?
+    private String endTime;
     private float minPrice;
     private String winnerBid;           //when auctionStatus is OPEN, this is used has the current winner
-    private AuctionStatus status;       //TODO: change to String?
+    private AuctionStatus status;
 
     public Auction(@JsonProperty("id") String id, @JsonProperty("title") String title, @JsonProperty("description") String description, @JsonProperty("photoId") String photoId,
                    @JsonProperty("ownerNickname") String ownerNickname, @JsonProperty("endTime") String endTime, @JsonProperty("minPrice") float minPrice, @JsonProperty("winnerBid") String winnerBid, @JsonProperty("status") AuctionStatus status) {

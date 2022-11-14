@@ -100,7 +100,6 @@ public class UsersResource {
                 bidDAO.setUserNickname(DELETED_USER);
                 redisCosmosLayer.replaceBid(bidDAO);
             });
-            // TODO: maybe garbage collector
             redisCosmosLayer.deleteUser(nickname);
             //delete the cookie auth
             auth.deleteSession(session);

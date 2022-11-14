@@ -39,7 +39,7 @@ public class RedisCosmosLayer {
 	public User putUser(User user) {
 		UserDAO userDao = new UserDAO(user);
 		try {
-			cosmosDBLayer.putUser(userDao);			//TODO put the result of bd in cache (for all put methods)
+			userDao = cosmosDBLayer.putUser(userDao).getItem();
 			if(RedisCache.IS_ACTIVE ) {
 				redisCache.putUser(userDao);
 			}
@@ -66,7 +66,7 @@ public class RedisCosmosLayer {
 
 	public void replaceUser(UserDAO userDAO) {
 		try {
-			cosmosDBLayer.replaceUser(userDAO);
+			userDAO = cosmosDBLayer.replaceUser(userDAO).getItem();
 			if(RedisCache.IS_ACTIVE ) {
 				redisCache.putUser(userDAO);
 			}
@@ -92,7 +92,7 @@ public class RedisCosmosLayer {
 	public Auction putAuction(Auction auction) {
 		AuctionDAO auctionDAO = new AuctionDAO(auction);
 		try {
-			cosmosDBLayer.putAuction(auctionDAO);
+			auctionDAO = cosmosDBLayer.putAuction(auctionDAO).getItem();
 			if(RedisCache.IS_ACTIVE ) {
 				redisCache.putAuction(auctionDAO);
 			}
@@ -133,7 +133,7 @@ public class RedisCosmosLayer {
 
 	public void replaceAuction(AuctionDAO auction) {
 		try {
-			cosmosDBLayer.replaceAuction(auction);
+			auction = cosmosDBLayer.replaceAuction(auction).getItem();
 			if(RedisCache.IS_ACTIVE ) {
 				redisCache.putAuction(auction);
 			}
@@ -146,10 +146,11 @@ public class RedisCosmosLayer {
 	public Bid putBid(Bid bid, AuctionDAO auctionDAO) {
 		BidDAO bidDAO = new BidDAO(bid);
 		try {
-			cosmosDBLayer.putBid(bidDAO);
-			cosmosDBLayer.replaceAuction(auctionDAO);
+			bidDAO = cosmosDBLayer.putBid(bidDAO).getItem();
+			auctionDAO = cosmosDBLayer.replaceAuction(auctionDAO).getItem();
 			if(RedisCache.IS_ACTIVE ) {
 				redisCache.putBid(bidDAO);
+				redisCache.putAuction(auctionDAO);
 			}
 			return bid;
 		}
@@ -174,7 +175,7 @@ public class RedisCosmosLayer {
 
 	public void replaceBid(BidDAO bid) {
 		try {
-			cosmosDBLayer.replaceBid(bid);
+			bid = cosmosDBLayer.replaceBid(bid).getItem();
 			if(RedisCache.IS_ACTIVE ) {
 				redisCache.putBid(bid);
 			}

@@ -30,8 +30,6 @@ import java.util.stream.Collectors;
 @Path(AuctionResource.PATH)
 public class AuctionResource {
 
-    //TODO: end auctions with azure functions
-
     public static final String PATH = "/auction";
 
     private final RedisCosmosLayer redisCosmosLayer;
