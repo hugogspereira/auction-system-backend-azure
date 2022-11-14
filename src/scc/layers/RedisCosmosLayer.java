@@ -104,17 +104,7 @@ public class RedisCosmosLayer {
 	}
 
 	public List<AuctionDAO> getAuctionsByUser(String nickname) {
-		List<AuctionDAO> auctionsDao;
-		if(RedisCache.IS_ACTIVE ) {
-			auctionsDao = redisCache.getAuctionsByUser(nickname);
-			if(auctionsDao == null) {
-				auctionsDao = cosmosDBLayer.getAuctionsByUser(nickname);
-			}
-		}
-		else {
-			auctionsDao = cosmosDBLayer.getAuctionsByUser(nickname);
-		}
-		return auctionsDao;
+		return cosmosDBLayer.getAuctionsByUser(nickname);
 	}
 
 	public AuctionDAO getAuctionById(String id) {
@@ -144,14 +134,9 @@ public class RedisCosmosLayer {
 	}
 
 	public Bid putBid(Bid bid, AuctionDAO auctionDAO) {
-		BidDAO bidDAO = new BidDAO(bid);
 		try {
-			bidDAO = cosmosDBLayer.putBid(bidDAO).getItem();
-			auctionDAO = cosmosDBLayer.replaceAuction(auctionDAO).getItem();
-			if(RedisCache.IS_ACTIVE ) {
-				redisCache.putBid(bidDAO);
-				redisCache.putAuction(auctionDAO);
-			}
+			cosmosDBLayer.putBid(new BidDAO(bid)).getItem();
+			cosmosDBLayer.replaceAuction(auctionDAO).getItem();
 			return bid;
 		}
 		catch(CosmosException e) {
@@ -160,25 +145,12 @@ public class RedisCosmosLayer {
 	}
 
 	public List<BidDAO> getBidsByUser(String nickname) {
-		List<BidDAO> bidsDao;
-		if(RedisCache.IS_ACTIVE ) {
-			bidsDao = redisCache.getBidsByUser(nickname);
-			if(bidsDao == null) {
-				bidsDao = cosmosDBLayer.getBidsByUser(nickname);
-			}
-		}
-		else {
-			bidsDao = cosmosDBLayer.getBidsByUser(nickname);
-		}
-		return bidsDao;
+		return cosmosDBLayer.getBidsByUser(nickname);
 	}
 
 	public void replaceBid(BidDAO bid) {
 		try {
-			bid = cosmosDBLayer.replaceBid(bid).getItem();
-			if(RedisCache.IS_ACTIVE ) {
-				redisCache.putBid(bid);
-			}
+			cosmosDBLayer.replaceBid(bid).getItem();
 		}
 		catch (CosmosException e) {
 			throw new WebApplicationException(e.getStatusCode());
@@ -187,17 +159,7 @@ public class RedisCosmosLayer {
 
 
 	public List<BidDAO> getBidsByAuction(String auctionId) {
-		List<BidDAO> bidsDao;
-		if(RedisCache.IS_ACTIVE ) {
-			bidsDao = redisCache.getBidsByAuction(auctionId);
-			if(bidsDao == null) {
-				bidsDao = cosmosDBLayer.getBidsByAuction(auctionId);
-			}
-		}
-		else {
-			bidsDao = cosmosDBLayer.getBidsByAuction(auctionId);
-		}
-		return bidsDao;
+		return cosmosDBLayer.getBidsByAuction(auctionId);
 	}
 
 
