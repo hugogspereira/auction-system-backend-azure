@@ -8,6 +8,7 @@ import redis.clients.jedis.JedisPoolConfig;
 import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
 import scc.dao.UserDAO;
+import java.util.Collection;
 import java.util.List;
 
 import static scc.utils.AzureProperties.REDIS_KEY;
@@ -30,7 +31,6 @@ public class RedisCache {
     private static final String BIDS_AUCTION_KEY = "bids_auction_";
     private static final String SESSION_KEY = "session:";
 
-    private static final int SESSION_EXP_TEST = 60;
     private static final int SESSION_EXP_TIME = 3600;
 
     public RedisCache() {
@@ -77,9 +77,7 @@ public class RedisCache {
         try(Jedis jedis = instance.getResource()) {
             jedis.set(AUCTION_KEY+auction.getId(), mapper.writeValueAsString(auction));
 
-            //TODO
-
-            jedis.lpush(USER_AUCTIONS_KEY+auction.getOwnerNickname()+":", mapper.writeValueAsString(auction));
+            jedis.hset(USER_AUCTIONS_KEY+auction.getOwnerNickname()+":", auction.getId(), mapper.writeValueAsString(auction)); //
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the auction in cache.\n"+e.getMessage());
         }
@@ -90,8 +88,8 @@ public class RedisCache {
         try(Jedis jedis = instance.getResource()) {
             jedis.set(BID_KEY+bid.getId(), mapper.writeValueAsString(bid));
 
-            jedis.lpush(USER_BIDS_KEY+bid.getUserNickname()+":", mapper.writeValueAsString(bid));
-            jedis.lpush(BIDS_AUCTION_KEY+bid.getAuctionId()+":", mapper.writeValueAsString(bid));
+            jedis.hset(USER_BIDS_KEY+bid.getUserNickname()+":", bid.getId(), mapper.writeValueAsString(bid)); //
+            jedis.hset(BIDS_AUCTION_KEY+bid.getAuctionId()+":", bid.getId(), mapper.writeValueAsString(bid)); //
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
         }
@@ -102,10 +100,8 @@ public class RedisCache {
         try(Jedis jedis = instance.getResource()) {
             jedis.set(BID_KEY+bid.getId(), mapper.writeValueAsString(bid));
 
-            //TODO
-
-            jedis.lpush(USER_BIDS_KEY+bid.getUserNickname()+":", mapper.writeValueAsString(bid));
-            jedis.lpush(BIDS_AUCTION_KEY+bid.getAuctionId()+":", mapper.writeValueAsString(bid));
+            jedis.hset(USER_BIDS_KEY+bid.getUserNickname()+":", bid.getId(), mapper.writeValueAsString(bid)); //
+            jedis.hset(BIDS_AUCTION_KEY+bid.getAuctionId()+":", bid.getId(), mapper.writeValueAsString(bid)); //
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
         }
@@ -160,7 +156,7 @@ public class RedisCache {
     public List<AuctionDAO> getAuctionsByUser(String nickname) {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
-            List<String> listOfAuctions = jedis.lrange(USER_AUCTIONS_KEY+nickname+":", 0, -1);
+            Collection<String> listOfAuctions = jedis.hgetAll(USER_AUCTIONS_KEY+nickname+":").values(); //
             if(listOfAuctions ==  null) { return null; }
             List<AuctionDAO> resList = mapper.readValue(listOfAuctions.toString(), mapper.getTypeFactory().constructCollectionType(List.class, AuctionDAO.class));
             return resList;
@@ -173,7 +169,7 @@ public class RedisCache {
     public List<BidDAO> getBidsByUser(String nickname) {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
-            List<String> listOfBids = jedis.lrange(USER_BIDS_KEY+nickname+":", 0, -1);
+            Collection<String> listOfBids = jedis.hgetAll(USER_BIDS_KEY+nickname+":").values();  //
             if(listOfBids ==  null) { return null; }
             List<BidDAO> resList = mapper.readValue(listOfBids.toString(), mapper.getTypeFactory().constructCollectionType(List.class, BidDAO.class));
             return resList;
@@ -186,7 +182,7 @@ public class RedisCache {
     public List<BidDAO> getBidsByAuction(String auctionId) {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()){
-            List<String> listOfBids = jedis.lrange(BIDS_AUCTION_KEY+auctionId+":", 0, -1);
+            Collection<String> listOfBids = jedis.hgetAll(BIDS_AUCTION_KEY+auctionId+":").values(); //
             if(listOfBids ==  null) { return null; }
             List<BidDAO> resList = mapper.readValue(listOfBids.toString(), mapper.getTypeFactory().constructCollectionType(List.class, BidDAO.class));
             return resList;
