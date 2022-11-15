@@ -29,8 +29,8 @@ public class AuthSession {
         return session;
     }
 
-    public void putSession(String sessionId, String userId) {
-        cache.putSession(sessionId, userId);
+    public void putSession(String sessionId, String userNickname) {
+        cache.putSession(sessionId, userNickname);
     }
 
     public String getSession(Cookie session) {

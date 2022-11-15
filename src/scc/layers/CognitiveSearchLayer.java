@@ -44,7 +44,7 @@ public class CognitiveSearchLayer {
         SearchOptions options = new SearchOptions()
                 .setIncludeTotalCount(true)
                 .setSelect("id", "title", "description", "ownerNickname", "endTime")
-                .setSearchFields("title", "description")
+                .setSearchFields("description")
                 .setTop(10);
 
         SearchPagedIterable spi = sc.search(query, options, null);
