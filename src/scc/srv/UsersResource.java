@@ -167,14 +167,14 @@ public class UsersResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response auth(Login user) {
 
-        String id = user.getId();
+        String nickname = user.getNickname();
         String pwd = user.getPwd();
 
-        if (id == null || pwd == null) {
+        if (nickname == null || pwd == null) {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
 
-        UserDAO userDAO = redisCosmosLayer.getUserById(id);
+        UserDAO userDAO = redisCosmosLayer.getUserById(nickname);
 
         if (userDAO == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -193,7 +193,7 @@ public class UsersResource {
                 .httpOnly(true)
                 .build();
 
-        auth.putSession(uid, id);
+        auth.putSession(uid, nickname);
         return Response.ok().cookie(cookie).build();
     }
 }

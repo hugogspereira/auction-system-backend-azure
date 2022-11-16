@@ -2,23 +2,23 @@ package scc.model;
 
 public class Login {
 
-    private String id;
+    private String nickname;
     private String pwd;
 
     public Login() {
     }
 
-    public Login(String id, String pwd) {
-        this.id = id;
+    public Login(String nickname, String pwd) {
+        this.nickname = nickname;
         this.pwd = pwd;
     }
 
-    public String getId() {
-        return id;
+    public String getNickname() {
+        return nickname;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
 
     public String getPwd() {
