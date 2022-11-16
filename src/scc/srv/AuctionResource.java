@@ -19,6 +19,8 @@ import scc.model.Bid;
 import scc.model.Question;
 import scc.utils.AuctionStatus;
 import scc.utils.IdGenerator;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,6 +57,10 @@ public class AuctionResource {
 
         if(!blobStorageLayer.existsBlob(auction.getPhotoId()))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
+
+        if(LocalDateTime.parse(auction.getEndTime()).isBefore(LocalDateTime.now(ZoneId.systemDefault()))) {
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
 
         auction.setId(IdGenerator.generate());
         return redisCosmosLayer.putAuction(auction);
