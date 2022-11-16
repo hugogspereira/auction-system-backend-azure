@@ -7,18 +7,20 @@ public class AuctionDAO {
 
     public static String DELETED_USER = "Deleted User";
 
-    private String _rid;
-    private String _ts;
-    private String id;
-    private String title;
-    private String description;
-    private String photoId;
-    private String ownerNickname;
-    private String endTime;
-    private float minPrice;
-    private String winnerBid;
-    private AuctionStatus status;
-    private float winningValue;
+    private String _rid; //
+    private String _ts; //
+    private String id; //
+    private boolean open; //
+    private boolean closed; //
+    private String title; //
+    private String description; //
+    private String photoId; //
+    private String ownerNickname; //
+    private String endTime; //
+    private float minPrice; //
+    private String winnerBid; //
+    private AuctionStatus status; //
+    private float winningValue; //
 
     public AuctionDAO() {
     }
@@ -42,11 +44,38 @@ public class AuctionDAO {
         this.winningValue = 0;
     }
 
+    public AuctionDAO(String id, String title, String description, String photoId, String ownerNickname,
+                      String endTime, float minPrice, boolean open, boolean closed) {
+        super();
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.photoId = photoId;
+        this.ownerNickname = ownerNickname;
+        this.endTime = endTime;
+        this.minPrice = minPrice;
+        this.winnerBid = null;
+        this.status = AuctionStatus.OPEN;
+        this.winningValue = 0;
+    }
+
     public String get_rid() {
         return _rid;
     }
     public void set_rid(String _rid) {
         this._rid = _rid;
+    }
+    public boolean getOpen() {
+        return open;
+    }
+    public void setOpen(boolean open) {
+        this.open = open;
+    }
+    public boolean getClosed() {
+        return closed;
+    }
+    public void setClosed(boolean closed) {
+        this.closed = closed;
     }
     public String get_ts() {
         return _ts;
@@ -125,6 +154,10 @@ public class AuctionDAO {
         return status.equals(AuctionStatus.OPEN);
     }
 
+    public boolean isClosed() {
+        return status.equals(AuctionStatus.CLOSED);
+    }
+
     public boolean isNewValue(float newValue) {
         return newValue >= minPrice && newValue > winningValue;
     }
@@ -142,8 +175,10 @@ public class AuctionDAO {
                 ", endTime='" + endTime + '\'' +
                 ", minPrice=" + minPrice +
                 ", winnerBid='" + winnerBid + '\'' +
-                ", status=" + status +
-                ", winningValue=" + winningValue +
+                ", status='" + status + '\'' +
+                ", winningValue='" + winningValue +'\'' +
+                ", open='" + open +'\'' +
+                ", closed='" + closed +'\'' +
                 '}';
     }
 }
