@@ -78,7 +78,19 @@ public class AuctionResource {
         AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(id);
         if(auctionDAO == null || !blobStorageLayer.existsBlob(auction.getPhotoId()))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
-
+        
+        if(auctionDAO.isOpen()) {
+            auctionDAO.setEndTime(auction.getEndTime());
+            if(LocalDateTime.parse(auction.getEndTime()).isBefore(LocalDateTime.now(ZoneId.systemDefault()))) {
+                auctionDAO.setStatus(AuctionStatus.CLOSED);
+            }
+        }
+        else {
+            if(!LocalDateTime.parse(auction.getEndTime()).equals(LocalDateTime.parse(auctionDAO.getEndTime()))) {
+                throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            }
+        }
+        
         auctionDAO.setTitle(auction.getTitle());
         auctionDAO.setDescription(auction.getDescription());
         auctionDAO.setPhotoId(auction.getPhotoId());
