@@ -129,7 +129,7 @@ public class AuctionResource {
         UserDAO userDAO = redisCosmosLayer.getUserById(bid.getUserNickname());
         if(auctionDAO == null || userDAO == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
-        if(!auctionDAO.getStatus().equals(AuctionStatus.OPEN) || auctionDAO.getOwnerNickname().equals(bid.getUserNickname()))
+        if(!auctionDAO.isOpen() || auctionDAO.getOwnerNickname().equals(bid.getUserNickname()))
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         if(!auctionDAO.isNewValue(bid.getValue()))
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
