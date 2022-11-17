@@ -1,4 +1,5 @@
 #ONLY RUN THIS TEST AFTER RUNNING WORKLOAD0 AND WORKLOAD1
+#YOU CAN RUN 'npm run workload' to run all 3 workloads sequentially
 config:
   # target: "TYPE HERE THE DEPLOYED TARGET"
   target: "http://localhost:8080/scc2223-proj1-1.0/rest"
@@ -8,12 +9,10 @@ config:
     metrics-by-endpoint:
       useOnlyRequestNames: true # new mode to aggregate metrics in artillery
   processor: "./test-utils.js"
-  variables:
-    numUsers: 100
   phases:
     - name: "Warm up"
       arrivalRate: 1
-      duration: 1
+      duration: 10
     - name: "Test"
      arrivalRate: 5
       duration: 60
