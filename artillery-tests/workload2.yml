@@ -1,0 +1,215 @@
+#ONLY RUN THIS TEST AFTER RUNNING WORKLOAD0 AND WORKLOAD1
+config:
+  # target: "TYPE HERE THE DEPLOYED TARGET"
+  target: "http://localhost:8080/scc2223-proj1-1.0/rest"
+  http:
+    timeout: 10
+  plugins:
+    metrics-by-endpoint:
+      useOnlyRequestNames: true # new mode to aggregate metrics in artillery
+  processor: "./test-utils.js"
+  variables:
+    numUsers: 100
+  phases:
+    - name: "Warm up"
+      arrivalRate: 1
+      duration: 1
+    - name: "Test"
+     arrivalRate: 5
+      duration: 60
+
+scenarios:
+  - name: "User logs in, searches for an auction, bids on one and asks a question"
+    weight: 4
+    flow:
+      - function: "selectUserSkewed"
+      - post:
+          url: "/user/auth"
+          name: "POST:/user/auth"
+          headers:
+            Content-Type: "application/json"
+            Accept: application/json
+          json:
+            nickname: "{{ nickname }}"
+            pwd: "{{ pwd }}"
+          capture:
+            header: "set-cookie"
+            as: "cookie"
+      - function: "selectWordToSearch"
+      - get:
+          url: "/auction/search?query={{searchWord}}"
+          afterResponse: "processSearchReply"
+      - function: "genNewBid" # Generate the needed information for the bid
+      - post:
+          url: "/auction/{{auctionId}}/bid"
+          name: "POST:/auction/{{auctionId}}/bid"
+          headers:
+            Content-Type: application/json
+            Accept: application/json
+            Cookie: "{{ cookie[0] }}"
+          json:
+            userNickname: "{{ nickname }}"
+            value: "{{ value }}"
+      - function: "genNewQuestion" # Generate the needed information for the question
+      - post:
+          url: "/auction/{{auctionId}}/question"
+          name: "POST:/auction/{{auctionId}}/question"
+          headers:
+            Content-Type: application/json
+            Accept: application/json
+            Cookie: "{{ cookie[0] }}"
+          json:
+            userNickname: "{{ nickname }}"
+            message: "{{ question }}"
+          capture:
+            json: "id"
+            as: "questionId"
+  - name: "User makes some changes" #User changes their info, searches through their auctions and questions and replies to some
+    weight: 3
+    flow:
+      - function: "selectUserSkewed"
+      - post:
+          url: "/user/auth"
+          name: "POST:/user/auth"
+          headers:
+            Content-Type: "application/json"
+            Accept: application/json
+          json:
+            nickname: "{{ nickname }}"
+            pwd: "{{ pwd }}"
+          capture:
+            header: "set-cookie"
+            as: "cookie"
+      - function: "genUserUpdate" # function used to generate a user update
+      - put:
+          url: "/user/{{nickname}}?password={{pwd}}"
+          name: "PUT:/user/{{nickname}}"
+          headers:
+            Content-Type: application/json
+            Accept: application/json
+            Cookie: "{{ cookie[0] }}"
+          json:
+            name: "{{ name }}"
+            pwd: "{{ pwd }}"
+            photoId: "{{ photoId }}"
+      - loop:
+          - get:
+              url: "/user/{{nickname}}/auction"
+              name: "GET:/user/{{nickname}}/auction"
+              headers:
+                Content-Type: application/json
+                Cookie: "{{ cookie[0] }}"
+              afterResponse: "processListAuctionsReply"
+          - get:
+              url: "/auction/{{auctionId}}/question"
+              headers:
+                Content-Type: application/json
+                Cookie: "{{ cookie[0] }}"
+              afterResponse: "processListQuestionsReply"
+          - function: "genNewReply" # Generate the needed information for the reply
+          - post:
+              url: "/auction/{{auctionId}}/question"
+              name: "POST:/auction/{{auctionId}}/question"
+              headers:
+                Content-Type: application/json
+                Accept: application/json
+                Cookie: "{{ cookie[0] }}"
+              json:
+                userNickname: "{{ nickname }}"
+                reply: "{{ reply }}"
+                message: "{{ message }}"
+                questionId: "{{ questionId }}"
+        count: 5
+
+  - name: "Another scenario of usage"
+    weight: 5
+    flow:
+      - function: "selectUserToLogin"
+      - post:
+          url: "/user/auth"
+          name: "POST:/user/auth"
+          headers:
+            Content-Type: "application/json"
+            Accept: application/json
+          json:
+            nickname: "{{ nickname }}"
+            pwd: "{{ pwd }}"
+          capture:
+            header: "set-cookie"
+            as: "cookie"
+      - post: # First: post image for the user
+          url: "/media"
+          name: "POST:/media"
+          headers:
+            Content-Type: application/octet-stream
+            Accept: application/json
+          beforeRequest: "uploadImageBody"
+          capture:
+            regexp: "(.+)"
+            as: "imageId" # capture the reply as image id to be used in user creation
+      - function: "genNewAuction" # Generate the needed information for the auction
+      - post:
+          url: "/auction"
+          name: "POST:/auction"
+          headers:
+            Content-Type: application/json
+            Accept: application/json
+            Cookie: "{{ cookie[0] }}"
+          json:
+            title: "{{ title }}"
+            description: "{{ description }}"
+            photoId: "{{ imageId }}"
+            ownerNickname: "{{ nickname }}"
+            endTime: "{{ endTime }}"
+            minPrice: "{{ minPrice }}"
+          capture:
+            - json: "id"
+              as: "auctionId"
+            - json: "ownerNickname"
+              as: "ownerNickname"
+          afterResponse: "processNewAuctionReply" # capture result and store in file
+      - get:
+          url: "/media/{{imageId}}"
+          name: "GET:/media"
+          headers:
+            Accept: application/octet-stream
+      - function: "selectWordToSearch"
+      - get:
+          url: "/auction/search?query={{searchWord}}"
+          name: "GET:/auction/search"
+          afterResponse: "processSearchReply"
+      - function: "genNewQuestion" # Generate the needed information for the question
+      - post:
+          url: "/auction/{{auctionId}}/question"
+          name: "POST:/auction/{{auctionId}}/question"
+          headers:
+            Content-Type: application/json
+            Accept: application/json
+            Cookie: "{{ cookie[0] }}"
+          json:
+            userNickname: "{{ nickname }}"
+            message: "{{ question }}"
+
+  - name: "User deletes their account"
+    weight: 1
+    flow:
+      - function: "selectUserToLogin"
+      - post:
+          url: "/user/auth"
+          name: "POST:/user/auth"
+          headers:
+            Content-Type: "application/json"
+            Accept: application/json
+          json:
+            nickname: "{{ nickname }}"
+            pwd: "{{ pwd }}"
+          capture:
+            header: "set-cookie"
+            as: "cookie"
+      - delete:
+          url: "/user/{{nickname}}?password={{pwd}}"
+          headers:
+            Content-Type: application/json
+            Accept: application/json
+            Cookie: "{{ cookie[0] }}"
+          afterResponse: "processDeleteUserReply" # capture result and store in file

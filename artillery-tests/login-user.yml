@@ -5,10 +5,9 @@ config:
   http:
     timeout: 10
   plugins:
-    metrics-by-endpoint: {}
+    metrics-by-endpoint:
+      useOnlyRequestNames: true # new mode to aggregate metrics in artillery
   processor: "./test-utils.js"
-  variables:
-    metricsProcessEndpoint: "myProcessEndpoint" # function used to aggregate endpoints for statistics
   phases:
     - name: "Login user" # Login user and save cookie test
       duration: 1
@@ -26,11 +25,11 @@ scenarios:
                 Content-Type: application/json
                 Accept: application/json
               json:
-                id: "{{ nickname }}"
+                nickname: "{{ nickname }}"
                 pwd: "{{ pwd }}"
               capture:
                 header: "set-cookie"
                 as: "cookie"
           # log the cookie
           - log: "this is the cookie: {{ cookie[0] }}"
-        count: 1 # 10 users
+        count: 1

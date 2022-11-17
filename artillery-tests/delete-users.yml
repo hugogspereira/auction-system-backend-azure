@@ -4,10 +4,9 @@ config:
   http:
     timeout: 10
   plugins:
-    metrics-by-endpoint: {}
+    metrics-by-endpoint:
+      useOnlyRequestNames: true # new mode to aggregate metrics in artillery
   processor: "./test-utils.js"
-  variables:
-    metricsProcessEndpoint: "myProcessEndpoint" # function used to aggregate endpoints for statistics
   phases:
     - name: "Delete users" # Delete users
       duration: 1
@@ -25,7 +24,7 @@ scenarios:
                 Content-Type: application/json
                 Accept: application/json
               json:
-                id: "{{ nickname }}"
+                nickname: "{{ nickname }}"
                 pwd: "{{ pwd }}"
               capture:
                 header: "set-cookie"
