@@ -4,10 +4,9 @@ config:
   http:
     timeout: 10
   plugins:
-    metrics-by-endpoint: {}
+    metrics-by-endpoint:
+      useOnlyRequestNames: true # new mode to aggregate metrics in artillery
   processor: "./test-utils.js"
-  variables:
-    metricsProcessEndpoint: "myProcessEndpoint" # function used to aggregate endpoints for statistics
   phases:
     - name: "Create questions" # Create questions
       duration: 1
@@ -25,7 +24,7 @@ scenarios:
                 Content-Type: application/json
                 Accept: application/json
               json:
-                id: "{{ userNickname }}"
+                nickname: "{{ userNickname }}"
                 pwd: "{{ userPwd }}"
               capture:
                 header: "set-cookie"
@@ -54,7 +53,7 @@ scenarios:
                 Content-Type: application/json
                 Accept: application/json
               json:
-                id: "{{ ownerNickname }}"
+                nickname: "{{ ownerNickname }}"
                 pwd: "{{ ownerPwd }}"
               capture:
                 header: "set-cookie"

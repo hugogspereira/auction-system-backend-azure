@@ -43,9 +43,21 @@ Array.prototype.sample = function () {
   return this[Math.floor(Math.random() * this.length)];
 };
 
+// Auxiliary function to select an element from an array
+Array.prototype.sampleSkewed = function () {
+  return this[randomSkewed(this.length)];
+};
+
 // Returns a random value, from 0 to val
 function random(val) {
   return Math.floor(Math.random() * val);
+}
+
+// Returns a random value, from 0 to val
+function randomSkewed(val) {
+  let beta = Math.pow(Math.sin((Math.random() * Math.PI) / 2), 2);
+  let beta_left = beta < 0.5 ? 2 * beta : 2 * (1 - beta);
+  return Math.floor(beta_left * val);
 }
 
 // Loads data about images from disk
@@ -116,7 +128,8 @@ function genNewAuction(context, events, done) {
   context.vars.title = `${faker.commerce.productName()}`;
   context.vars.description = `${faker.commerce.productDescription()}`;
   context.vars.minPrice = `${faker.commerce.price(5, 50)}`;
-  context.vars.endTime = "2022-12-07T21:22:35.328472158Z[Europe/Lisbon]";
+  // context.vars.endTime = "2022-12-07T21:22:35.328472158Z[Europe/Lisbon]";
+  context.vars.endTime = `${faker.date.future().toISOString()}`;
   return done();
 }
 
@@ -129,6 +142,39 @@ function genUserUpdate(context, events, done) {
   let user = users.find((u) => u.nickname === context.vars.nickname);
   context.vars.photoId = user.photoId;
 
+  return done();
+}
+
+/**
+ * Generate data for a new bid
+ */
+function genNewBid(context, events, done) {
+  if (typeof context.vars.bidValue == "undefined") {
+    if (typeof context.vars.minimumPrice == "undefined") {
+      context.vars.bidValue = random(100);
+    } else {
+      context.vars.bidValue = context.vars.minimumPrice + random(3);
+    }
+  }
+  context.vars.value = context.vars.bidValue;
+  context.vars.bidValue = context.vars.bidValue + 1 + random(3);
+  return done();
+}
+
+/**
+ * Generate data for a new question
+ */
+function genNewQuestion(context, events, done) {
+  context.vars.question = `${faker.lorem.sentence()}`;
+  return done();
+}
+
+/**
+ * Generate data for a new reply
+ */
+function genNewReply(context, events, done) {
+  context.vars.message = `${faker.lorem.sentence()}`;
+  context.vars.reply = true;
   return done();
 }
 
@@ -271,6 +317,61 @@ function processUpdateUserReply(requestParams, response, context, ee, next) {
   return next();
 }
 
+/**
+ * Process reply of auction search
+ * Choose one auction id from the array and save in context
+ */
+function processSearchReply(requestParams, response, context, ee, next) {
+  if (
+    response.statusCode >= 200 &&
+    response.statusCode < 300 &&
+    response.body.length > 0
+  ) {
+    let a = JSON.parse(response.body);
+    if (a.length > 0) {
+      let auction = a[random(a.length - 1)];
+      context.vars.auctionId = auction.id;
+    }
+  }
+  return next();
+}
+
+/**
+ * Process reply of list of auctions and select one
+ */
+function processListAuctionsReply(requestParams, response, context, ee, next) {
+  if (
+    response.statusCode >= 200 &&
+    response.statusCode < 300 &&
+    response.body.length > 0
+  ) {
+    let a = JSON.parse(response.body);
+    if (a.length > 0) {
+      let auction = a[random(a.length - 1)];
+      context.vars.auctionId = auction.id;
+    }
+  }
+  return next();
+}
+
+/**
+ * Process reply of list of questions and select one
+ */
+function processListQuestionsReply(requestParams, response, context, ee, next) {
+  if (
+    response.statusCode >= 200 &&
+    response.statusCode < 300 &&
+    response.body.length > 0
+  ) {
+    let q = JSON.parse(response.body);
+    if (q.length > 0) {
+      let question = q[random(q.length - 1)];
+      context.vars.questionId = question.questionId;
+    }
+  }
+  return next();
+}
+
 /*****************************************************
  ********************** SELECTORS ********************
  *****************************************************/
@@ -303,6 +404,21 @@ function selectUserToLogin(context, events, done) {
     let u = users.sample();
     context.vars.nickname = u.nickname;
     context.vars.pwd = u.pwd;
+  }
+  return done();
+}
+
+/**
+ * Select user
+ */
+function selectUserSkewed(context, events, done) {
+  if (users.length > 0) {
+    let user = users.sampleSkewed();
+    context.vars.nickname = user.nickname;
+    context.vars.pwd = user.pwd;
+  } else {
+    delete context.vars.nickname;
+    delete context.vars.pwd;
   }
   return done();
 }
@@ -404,11 +520,42 @@ function selectOwnerToReply(context, events, done) {
   return done();
 }
 
+/**
+ * Select the password of a specific user
+ */
+function selectUserPwd(context, events, done) {
+  let u = users.find((u) => u.nickname === context.vars.ownerNickname);
+  context.vars.ownerPwd = u.pwd;
+  return done();
+}
+
+/**
+ * Select a word from an auction's description to search
+ */
+function selectWordToSearch(context, events, done) {
+  let a = auctions.sample();
+  let words = a.description.split(" ");
+  context.vars.searchWord = words.sample();
+  return done();
+}
+
+/**
+ * Select an auction id
+ */
+function selectAuctionId(context, events, done) {
+  let a = auctions.sample();
+  context.vars.auctionId = a.id;
+  return done();
+}
+
 module.exports = {
   uploadImageBody,
   genNewUser,
   genNewAuction,
   genUserUpdate,
+  genNewBid,
+  genNewReply,
+  genNewQuestion,
   processUploadImageReply,
   processNewUserReply,
   processNewAuctionReply,
@@ -417,10 +564,17 @@ module.exports = {
   processNewQuestionReply,
   processDeleteUserReply,
   processUpdateUserReply,
+  processSearchReply,
+  processListAuctionsReply,
+  processListQuestionsReply,
   selectImageId,
   selectUserToLogin,
   selectImageToDownload,
   selectAuctionAndUserToBid,
   selectUserToAskQuestion,
   selectOwnerToReply,
+  selectUserPwd,
+  selectUserSkewed,
+  selectWordToSearch,
+  selectAuctionId,
 };

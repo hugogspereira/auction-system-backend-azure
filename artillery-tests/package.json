@@ -13,7 +13,11 @@
     "clean": "node cleanDisk.js",
     "create-all": "npm run create-users && npm run create-auctions && npm run create-bids && npm run create-questions && npm run clean",
     "create-all-noclean": "npm run create-users && npm run create-auctions && npm run create-bids && npm run create-questions",
-    "test-users": "npm run create-users && npm run update-users && npm run delete-users && npm run clean"
+    "test-users": "npm run create-users && npm run update-users && npm run delete-users && npm run clean",
+    "workload0": "artillery run workload0.yml",
+    "workload1": "artillery run workload1.yml",
+    "workload2": "artillery run workload2.yml",
+    "workload": "npm run workload0 && npm run workload1 && npm run workload2"
   },
   "author": "Pipa",
   "license": "ISC",

@@ -1,5 +1,6 @@
 package scc.cache;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -137,13 +138,16 @@ public class RedisCache {
         }
     }
 
+
     public AuctionDAO getAuction(String id) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         try(Jedis jedis = instance.getResource()) {
             String stringAuction = jedis.get(AUCTION_KEY+id);
-            if(stringAuction ==  null) { return null; }
-            System.out.println("\n\nRedis Cache: able to get the auction in cache\n\n");
+            if(stringAuction ==  null) {
+                System.out.println("Redis Cache: unable to get the auction in cache.");
+                return null; }
+            System.out.println("Redis Cache: auction found in cache.");
             return mapper.readValue(stringAuction, AuctionDAO.class);
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to get the auction in cache.\n"+e.getMessage());

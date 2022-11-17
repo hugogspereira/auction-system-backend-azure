@@ -4,14 +4,13 @@ config:
   http:
     timeout: 10
   plugins:
-    metrics-by-endpoint: {}
+    metrics-by-endpoint:
+      useOnlyRequestNames: true # new mode to aggregate metrics in artillery
   processor: "./test-utils.js"
-  variables:
-    metricsProcessEndpoint: "myProcessEndpoint" # function used to aggregate endpoints for statistics
   phases:
-    - name: "Create auctions" # Create auctions
+    - name: "Create auctions"
+      arrivalRate: 1
       duration: 1
-      arrivalCount: 1
 
 before:
   flow:
@@ -22,7 +21,7 @@ before:
           Content-Type: application/json
           Accept: application/json
         json:
-          id: "{{ nickname }}"
+          nickname: "{{ nickname }}"
           pwd: "{{ pwd }}"
         capture:
           header: "set-cookie"
@@ -53,4 +52,4 @@ scenarios:
               afterResponse: "processNewAuctionReply" # capture result and store in file
               expect:
                 - statusCode: 200
-        count: 5 # number of auctions to create
+        count: 10 # number of auctions to create
