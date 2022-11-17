@@ -103,10 +103,6 @@ public class RedisCosmosLayer {
 		}
 	}
 
-	public List<AuctionDAO> getAuctionsByUser(String nickname) {
-		return cosmosDBLayer.getAuctionsByUser(nickname);
-	}
-
 	public AuctionDAO getAuctionById(String id) {
 		AuctionDAO auctionDao;
 		if(RedisCache.IS_ACTIVE ) {
@@ -134,9 +130,14 @@ public class RedisCosmosLayer {
 	}
 
 	public Bid putBid(Bid bid, AuctionDAO auctionDAO) {
+		BidDAO bidDAO = new BidDAO(bid);
 		try {
-			cosmosDBLayer.putBid(new BidDAO(bid)).getItem();
-			cosmosDBLayer.replaceAuction(auctionDAO).getItem();
+			bidDAO = cosmosDBLayer.putBid(bidDAO).getItem();
+			auctionDAO = cosmosDBLayer.replaceAuction(auctionDAO).getItem();
+			if(RedisCache.IS_ACTIVE ) {
+				redisCache.putBid(bidDAO);
+				redisCache.putAuction(auctionDAO);
+			}
 			return bid;
 		}
 		catch(CosmosException e) {
@@ -145,7 +146,17 @@ public class RedisCosmosLayer {
 	}
 
 	public List<BidDAO> getBidsByUser(String nickname) {
-		return cosmosDBLayer.getBidsByUser(nickname);
+		List<BidDAO> bidsDao;
+		if(RedisCache.IS_ACTIVE ) {
+			bidsDao = redisCache.getBidsByUser(nickname);
+			if(bidsDao == null) {
+				bidsDao = cosmosDBLayer.getBidsByUser(nickname);
+			}
+		}
+		else {
+			bidsDao = cosmosDBLayer.getBidsByUser(nickname);
+		}
+		return bidsDao;
 	}
 
 	public void replaceBid(BidDAO bid) {
@@ -157,13 +168,15 @@ public class RedisCosmosLayer {
 		}
 	}
 
+	// methods not using cache
+
+	public List<AuctionDAO> getAuctionsByUser(String nickname) {
+		return cosmosDBLayer.getAuctionsByUser(nickname);
+	}
 
 	public List<BidDAO> getBidsByAuction(String auctionId) {
 		return cosmosDBLayer.getBidsByAuction(auctionId);
 	}
-
-
-	// methods not using cache
 
 	public QuestionDAO getQuestionById(String id) {
 		return cosmosDBLayer.getQuestionById(id);

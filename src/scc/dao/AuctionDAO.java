@@ -142,8 +142,8 @@ public class AuctionDAO {
                 ", endTime='" + endTime + '\'' +
                 ", minPrice=" + minPrice +
                 ", winnerBid='" + winnerBid + '\'' +
-                ", status=" + status +
-                ", winningValue=" + winningValue +
+                ", status='" + status + '\'' +
+                ", winningValue='" + winningValue +'\'' +
                 '}';
     }
 }
