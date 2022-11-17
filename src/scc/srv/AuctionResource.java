@@ -78,7 +78,7 @@ public class AuctionResource {
         AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(id);
         if(auctionDAO == null || !blobStorageLayer.existsBlob(auction.getPhotoId()))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
-        
+
         if(auctionDAO.isOpen()) {
             auctionDAO.setEndTime(auction.getEndTime());
             if(LocalDateTime.parse(auction.getEndTime()).isBefore(LocalDateTime.now(ZoneId.systemDefault()))) {
@@ -90,7 +90,7 @@ public class AuctionResource {
                 throw new WebApplicationException(Response.Status.BAD_REQUEST);
             }
         }
-        
+
         auctionDAO.setTitle(auction.getTitle());
         auctionDAO.setDescription(auction.getDescription());
         auctionDAO.setPhotoId(auction.getPhotoId());
@@ -129,7 +129,7 @@ public class AuctionResource {
         UserDAO userDAO = redisCosmosLayer.getUserById(bid.getUserNickname());
         if(auctionDAO == null || userDAO == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
-        if(!auctionDAO.getStatus().equals(AuctionStatus.OPEN) || auctionDAO.getOwnerNickname().equals(bid.getUserNickname()))
+        if(!auctionDAO.isOpen() || auctionDAO.getOwnerNickname().equals(bid.getUserNickname()))
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         if(!auctionDAO.isNewValue(bid.getValue()))
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
