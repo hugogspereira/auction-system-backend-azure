@@ -1,6 +1,8 @@
 package scc.cache;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -57,7 +59,7 @@ public class RedisCache {
 
     public void putUser(UserDAO user) {
         ObjectMapper mapper = new ObjectMapper();
-        try(Jedis jedis = instance.getResource()) {
+        try(Jedis jedis = RedisCache.getCachePool().getResource()) {
             jedis.set(USER_KEY+user.getId(), mapper.writeValueAsString(user));
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the user in cache.\n"+e.getMessage());
@@ -66,7 +68,7 @@ public class RedisCache {
 
     public void putAuction(AuctionDAO auction) {
         ObjectMapper mapper = new ObjectMapper();
-        try(Jedis jedis = instance.getResource()) {
+        try(Jedis jedis = RedisCache.getCachePool().getResource()) {
             jedis.set(AUCTION_KEY+auction.getId(), mapper.writeValueAsString(auction));
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the auction in cache.\n"+e.getMessage());
@@ -91,7 +93,7 @@ public class RedisCache {
 
     public UserDAO getUser(String nickname) {
         ObjectMapper mapper = new ObjectMapper();
-        try(Jedis jedis = instance.getResource()) {
+        try(Jedis jedis = RedisCache.getCachePool().getResource()) {
             String stringUser = jedis.get(USER_KEY+nickname);
             if(stringUser ==  null) { return null; }
             return mapper.readValue(stringUser, UserDAO.class);
@@ -101,11 +103,16 @@ public class RedisCache {
         }
     }
 
+
     public AuctionDAO getAuction(String id) {
         ObjectMapper mapper = new ObjectMapper();
-        try(Jedis jedis = instance.getResource()) {
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        try(Jedis jedis = RedisCache.getCachePool().getResource()) {
             String stringAuction = jedis.get(AUCTION_KEY+id);
-            if(stringAuction ==  null) { return null; }
+            if(stringAuction ==  null) {
+                System.out.println("Redis Cache: unable to get the auction in cache.");
+                return null; }
+            System.out.println("Redis Cache: auction found in cache.");
             return mapper.readValue(stringAuction, AuctionDAO.class);
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to get the auction in cache.\n"+e.getMessage());
@@ -120,7 +127,7 @@ public class RedisCache {
     }
 
     public void deleteUser(String nickname) {
-        try(Jedis jedis = instance.getResource()) {
+        try(Jedis jedis = RedisCache.getCachePool().getResource()) {
             jedis.del(USER_KEY+nickname);
         }
     }
