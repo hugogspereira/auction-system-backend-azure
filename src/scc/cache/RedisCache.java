@@ -1,6 +1,5 @@
 package scc.cache;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,8 +9,9 @@ import redis.clients.jedis.JedisPoolConfig;
 import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
 import scc.dao.UserDAO;
-import java.util.Collection;
+
 import java.util.List;
+
 import static scc.dao.AuctionDAO.DELETED_USER;
 import static scc.utils.AzureProperties.REDIS_KEY;
 import static scc.utils.AzureProperties.REDIS_URL;
@@ -44,7 +44,7 @@ public class RedisCache {
     }
 
     public synchronized static JedisPool getCachePool() {
-        if(instance != null)
+        if (instance != null)
             return instance;
 
         final JedisPoolConfig poolConfig = new JedisPoolConfig();
@@ -62,7 +62,7 @@ public class RedisCache {
     }
 
     public static synchronized RedisCache getInstance() {
-        if(redisCache != null) {
+        if (redisCache != null) {
             return redisCache;
         }
         redisCache = new RedisCache();
@@ -80,9 +80,6 @@ public class RedisCache {
     }
 
 
-
-
-
     // USERS
     public void putUser(UserDAO user) {
         ObjectMapper mapper = new ObjectMapper();
@@ -90,7 +87,7 @@ public class RedisCache {
             jedis.set(USER_KEY+user.getId(), mapper.writeValueAsString(user));
             jedis.expire(USER_KEY+user.getId(),DEFAULT_EXP_TIME);
         } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to put the user in cache.\n"+e.getMessage());
+            //System.out.println("Redis Cache: unable to put the user in cache.\n"+e.getMessage());
         }
     }
 
@@ -127,9 +124,6 @@ public class RedisCache {
     }
 
 
-
-
-
     // BIDS
     public void putBid(BidDAO bid) {
         ObjectMapper mapper = new ObjectMapper();
@@ -161,7 +155,7 @@ public class RedisCache {
                 jedis.expire(BIDS_AUCTION_KEY + bid.getAuctionId() + ":", DEFAULT_EXP_TIME);
             }
         } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
+            //System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
         }
     }
 
@@ -204,8 +198,6 @@ public class RedisCache {
             return null;
         }
     }
-
-
 
 
 
@@ -261,21 +253,17 @@ public class RedisCache {
 
     public List<AuctionDAO> getAuctionsByUser(String nickname) {
         ObjectMapper mapper = new ObjectMapper();
-        try(Jedis jedis = instance.getResource()) {
+        try (Jedis jedis = instance.getResource()) {
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
             List<String> listOfAuctions = jedis.lrange(USER_AUCTIONS_KEY+nickname+":", 0, -1); //jedis.hvals(USER_AUCTIONS_KEY+nickname+":");
             if(listOfAuctions ==  null) { return null; }
             return mapper.readValue(listOfAuctions.toString(), mapper.getTypeFactory().constructCollectionType(List.class, AuctionDAO.class));
         } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to get the auctions in cache.\n"+e.getMessage());
+            //System.out.println("Redis Cache: unable to get the auctions in cache.\n"+e.getMessage());
             return null;
         }
     }
-
-
-
-
 
     // SESSION
     public void putSession(String sessionId, String nickname) {
@@ -301,8 +289,8 @@ public class RedisCache {
     }
 
     public void deleteSession(String sessionId) {
-        try(Jedis jedis = RedisCache.getCachePool().getResource()) {
-            jedis.del(SESSION_KEY+sessionId);
+        try (Jedis jedis = RedisCache.getCachePool().getResource()) {
+            jedis.del(SESSION_KEY + sessionId);
         }
     }
 }

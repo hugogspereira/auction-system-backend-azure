@@ -142,7 +142,7 @@ public class AuctionResource {
     @GET
     @Path("/{id}/bid/")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Bid> listBids(@CookieParam("scc:session") Cookie session, @PathParam("id") String auctionId, @HeaderParam("Cache-Control") String cacheControl) {
+    public List<Bid> listBids(@CookieParam("scc:session") Cookie session, @PathParam("id") String auctionId) {
         if(auctionId == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
@@ -239,12 +239,11 @@ public class AuctionResource {
 
         try {
             List<AuctionDAO> auctionsDAO = redisCosmosLayer.getAuctionAboutToClose();
-            System.out.println(auctionsDAO != null);
-            if(auctionsDAO != null) {
-                for (AuctionDAO auctionDAO :auctionsDAO) {
-                    System.out.println(auctionDAO.toString());
-                }
-            }
+//            if(auctionsDAO != null) {
+//                for (AuctionDAO auctionDAO :auctionsDAO) {
+//                    System.out.println(auctionDAO.toString());
+//                }
+//            }
             if (auctionsDAO == null)
                 return null;
             return auctionsDAO.stream().map(AuctionDAO::toAuction).collect(Collectors.toList());
