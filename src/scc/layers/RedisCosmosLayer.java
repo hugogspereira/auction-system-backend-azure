@@ -59,7 +59,9 @@ public class RedisCosmosLayer {
 			userDao = redisCache.getUser(id);
 			if(userDao == null) {
 				userDao = cosmosDBLayer.getUserById(id);
-				redisCache.putUser(userDao);
+				if(userDao != null) {
+					redisCache.putUser(userDao);
+				}
 			}
 		}
 		else {
@@ -135,6 +137,7 @@ public class RedisCosmosLayer {
 			bidsDao = redisCache.getBidsByUser(nickname);
 			if(bidsDao == null) {
 				bidsDao = cosmosDBLayer.getBidsByUser(nickname);
+				if(bidsDao == null) { return null; }
 				for (BidDAO bid: bidsDao) {
 					redisCache.putBid(bid);
 				}
@@ -152,6 +155,7 @@ public class RedisCosmosLayer {
 			bidsDao = redisCache.getBidsByAuction(auctionId);
 			if(bidsDao == null) {
 				bidsDao = cosmosDBLayer.getBidsByAuction(auctionId);
+				if(bidsDao == null) { return null; }
 				for (BidDAO bid: bidsDao) {
 					redisCache.putBid(bid);
 				}
@@ -202,6 +206,7 @@ public class RedisCosmosLayer {
 			auctionDao = redisCache.getAuction(id);
 			if(auctionDao == null) {
 				auctionDao = cosmosDBLayer.getAuctionById(id);
+				if(auctionDao == null) { return null; }
 				redisCache.putAuction(auctionDao);
 			}
 		}
@@ -217,6 +222,7 @@ public class RedisCosmosLayer {
 			auctionsDao = redisCache.getAuctionsByUser(nickname);
 			if(auctionsDao == null) {
 				auctionsDao = cosmosDBLayer.getAuctionsByUser(nickname);
+				if(auctionDao == null) { return null; }
 				for (AuctionDAO auction: auctionsDao) {
 					redisCache.putAuction(auction);
 				}
