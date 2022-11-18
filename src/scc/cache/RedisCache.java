@@ -87,7 +87,7 @@ public class RedisCache {
             jedis.set(USER_KEY+user.getId(), mapper.writeValueAsString(user));
             jedis.expire(USER_KEY+user.getId(),DEFAULT_EXP_TIME);
         } catch (JsonProcessingException e) {
-            //System.out.println("Redis Cache: unable to put the user in cache.\n"+e.getMessage());
+            System.out.println("Redis Cache: unable to put the user in cache.\n"+e.getMessage());
         }
     }
 
@@ -135,11 +135,9 @@ public class RedisCache {
                 mapper = new ObjectMapper();
                 if(jedis.exists(USER_BIDS_KEY + bid.getUserNickname() + ":")) {
                     jedis.lpush(USER_BIDS_KEY + bid.getUserNickname() + ":",  mapper.writeValueAsString(bid));
-                    //jedis.hset(USER_BIDS_KEY + bid.getUserNickname() + ":", bid.getId(), mapper.writeValueAsString(bid));
                 }
                 else {
                     jedis.lpush(USER_BIDS_KEY + bid.getUserNickname() + ":",  mapper.writeValueAsString(bid));
-                    //jedis.hset(USER_BIDS_KEY + bid.getUserNickname() + ":", bid.getId(), mapper.writeValueAsString(bid));
                     jedis.expire(USER_BIDS_KEY + bid.getUserNickname() + ":", DEFAULT_EXP_TIME);
                 }
             }
@@ -147,15 +145,13 @@ public class RedisCache {
             mapper = new ObjectMapper();
             if(jedis.exists(BIDS_AUCTION_KEY + bid.getAuctionId() + ":")) {
                 jedis.lpush(BIDS_AUCTION_KEY + bid.getAuctionId() + ":",  mapper.writeValueAsString(bid));
-                //jedis.hset(BIDS_AUCTION_KEY + bid.getAuctionId() + ":", bid.getId(), mapper.writeValueAsString(bid));
             }
             else {
                 jedis.lpush(BIDS_AUCTION_KEY + bid.getAuctionId() + ":",  mapper.writeValueAsString(bid));
-                //jedis.hset(BIDS_AUCTION_KEY + bid.getAuctionId() + ":", bid.getId(), mapper.writeValueAsString(bid));
                 jedis.expire(BIDS_AUCTION_KEY + bid.getAuctionId() + ":", DEFAULT_EXP_TIME);
             }
         } catch (JsonProcessingException e) {
-            //System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
+            System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
         }
     }
 
@@ -175,11 +171,8 @@ public class RedisCache {
     public List<BidDAO> getBidsByUser(String nickname) {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
-            /*
-             * Get all fields and values of the hash stored at key
-             */
-            List<String> listOfBids = jedis.lrange(USER_BIDS_KEY+nickname+":", 0, -1); //jedis.hvals(USER_BIDS_KEY+nickname+":");
-            if(listOfBids ==  null) { return null; }
+            List<String> listOfBids = jedis.lrange(USER_BIDS_KEY+nickname+":", 0, -1);
+            if(listOfBids ==  null || listOfBids.isEmpty()) { return null; }
             return mapper.readValue(listOfBids.toString(), mapper.getTypeFactory().constructCollectionType(List.class, BidDAO.class));
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to get the bids in cache.\n"+e.getMessage());
@@ -190,8 +183,8 @@ public class RedisCache {
     public List<BidDAO> getBidsByAuction(String auctionId) {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()){
-            List<String> listOfBids = jedis.lrange(BIDS_AUCTION_KEY+auctionId+":", 0, -1); // jedis.hvals(BIDS_AUCTION_KEY+auctionId+":");
-            if(listOfBids ==  null) { return null; }
+            List<String> listOfBids = jedis.lrange(BIDS_AUCTION_KEY+auctionId+":", 0, -1);
+            if(listOfBids ==  null || listOfBids.isEmpty()) { return null; }
             return mapper.readValue(listOfBids.toString(), mapper.getTypeFactory().constructCollectionType(List.class, BidDAO.class));
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to get the bids in cache.\n"+e.getMessage());
@@ -212,11 +205,9 @@ public class RedisCache {
                 mapper = new ObjectMapper();
                 if(jedis.exists(USER_AUCTIONS_KEY+auction.getOwnerNickname()+":")) {
                     jedis.lpush(USER_AUCTIONS_KEY+auction.getOwnerNickname()+":",  mapper.writeValueAsString(auction));
-                    //jedis.hset(USER_AUCTIONS_KEY+auction.getOwnerNickname()+":", auction.getId(), mapper.writeValueAsString(auction));
                 }
                 else {
                     jedis.lpush(USER_AUCTIONS_KEY+auction.getOwnerNickname()+":",  mapper.writeValueAsString(auction));
-                    //jedis.hset(USER_AUCTIONS_KEY+auction.getOwnerNickname()+":", auction.getId(), mapper.writeValueAsString(auction));
                     jedis.expire(USER_AUCTIONS_KEY+auction.getOwnerNickname()+":", DEFAULT_EXP_TIME);
                 }
             }
@@ -256,11 +247,11 @@ public class RedisCache {
         try (Jedis jedis = instance.getResource()) {
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-            List<String> listOfAuctions = jedis.lrange(USER_AUCTIONS_KEY+nickname+":", 0, -1); //jedis.hvals(USER_AUCTIONS_KEY+nickname+":");
-            if(listOfAuctions ==  null) { return null; }
+            List<String> listOfAuctions = jedis.lrange(USER_AUCTIONS_KEY+nickname+":", 0, -1);
+            if(listOfAuctions ==  null || listOfAuctions.isEmpty()) { return null; }
             return mapper.readValue(listOfAuctions.toString(), mapper.getTypeFactory().constructCollectionType(List.class, AuctionDAO.class));
         } catch (JsonProcessingException e) {
-            //System.out.println("Redis Cache: unable to get the auctions in cache.\n"+e.getMessage());
+            System.out.println("Redis Cache: unable to get the auctions in cache.\n"+e.getMessage());
             return null;
         }
     }
