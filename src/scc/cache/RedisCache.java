@@ -69,6 +69,10 @@ public class RedisCache {
         return redisCache;
     }
 
+    /**
+     * This method invalidates the key for the lists, to prevent incoherence
+     * @param key - the key entry we will remove from cache
+     */
     public void invalidateKey(String key) {
         try(Jedis jedis = instance.getResource()) {
             jedis.del(key);
