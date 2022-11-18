@@ -95,6 +95,7 @@ public class RedisCache {
         try(Jedis jedis = instance.getResource()) {
             if(jedis.exists(USER_KEY+user.getId())) {
                 jedis.set(USER_KEY+user.getId(), mapper.writeValueAsString(user));
+                jedis.expire(USER_KEY+user.getId(),DEFAULT_EXP_TIME);
             }
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the user in cache.\n"+e.getMessage());
@@ -166,6 +167,7 @@ public class RedisCache {
             if(jedis.exists(BID_KEY+bid.getId())) {
                 mapper = new ObjectMapper();
                 jedis.set(BID_KEY+bid.getId(), mapper.writeValueAsString(bid));
+                jedis.expire(BID_KEY+bid.getId(), DEFAULT_EXP_TIME);
             }
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
@@ -233,6 +235,7 @@ public class RedisCache {
             if(jedis.exists(AUCTION_KEY+auction.getId())) {
                 mapper = new ObjectMapper();
                 jedis.set(AUCTION_KEY+auction.getId(), mapper.writeValueAsString(auction));
+                jedis.expire(AUCTION_KEY+auction.getId(), DEFAULT_EXP_TIME);
             }
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the auction in cache.\n"+e.getMessage());
