@@ -39,10 +39,7 @@ public class RedisCosmosLayer {
 	public User putUser(User user) {
 		UserDAO userDao = new UserDAO(user);
 		try {
-			userDao = cosmosDBLayer.putUser(userDao).getItem();
-			if(RedisCache.IS_ACTIVE ) {
-				redisCache.putUser(userDao);
-			}
+			cosmosDBLayer.putUser(userDao).getItem();
 			return user;
 		}
 		catch(CosmosException e) {
@@ -56,6 +53,7 @@ public class RedisCosmosLayer {
 			userDao = redisCache.getUser(id);
 			if(userDao == null) {
 				userDao = cosmosDBLayer.getUserById(id);
+				redisCache.putUser(userDao);
 			}
 		}
 		else {
@@ -68,7 +66,7 @@ public class RedisCosmosLayer {
 		try {
 			userDAO = cosmosDBLayer.replaceUser(userDAO).getItem();
 			if(RedisCache.IS_ACTIVE ) {
-				redisCache.putUser(userDAO);
+				redisCache.replaceUser(userDAO);
 			}
 		}
 		catch (CosmosException e) {
@@ -92,10 +90,7 @@ public class RedisCosmosLayer {
 	public Auction putAuction(Auction auction) {
 		AuctionDAO auctionDAO = new AuctionDAO(auction);
 		try {
-			auctionDAO = cosmosDBLayer.putAuction(auctionDAO).getItem();
-			if(RedisCache.IS_ACTIVE ) {
-				redisCache.putAuction(auctionDAO);
-			}
+			cosmosDBLayer.putAuction(auctionDAO).getItem();
 			return auction;
 		}
 		catch(CosmosException e) {
@@ -109,6 +104,7 @@ public class RedisCosmosLayer {
 			auctionDao = redisCache.getAuction(id);
 			if(auctionDao == null) {
 				auctionDao = cosmosDBLayer.getAuctionById(id);
+				redisCache.putAuction(auctionDao);
 			}
 		}
 		else {
@@ -121,7 +117,7 @@ public class RedisCosmosLayer {
 		try {
 			auction = cosmosDBLayer.replaceAuction(auction).getItem();
 			if(RedisCache.IS_ACTIVE) {
-				redisCache.putAuction(auction);
+				redisCache.replaceAuction(auction);
 			}
 		}
 		catch (CosmosException e) {
@@ -132,12 +128,8 @@ public class RedisCosmosLayer {
 	public Bid putBid(Bid bid, AuctionDAO auctionDAO) {
 		BidDAO bidDAO = new BidDAO(bid);
 		try {
-			bidDAO = cosmosDBLayer.putBid(bidDAO).getItem();
-			auctionDAO = cosmosDBLayer.replaceAuction(auctionDAO).getItem();
-			if(RedisCache.IS_ACTIVE ) {
-				redisCache.putBid(bidDAO);
-				redisCache.putAuction(auctionDAO);
-			}
+			cosmosDBLayer.putBid(bidDAO).getItem();
+			cosmosDBLayer.replaceAuction(auctionDAO).getItem();
 			return bid;
 		}
 		catch(CosmosException e) {
@@ -151,6 +143,7 @@ public class RedisCosmosLayer {
 			bidsDao = redisCache.getBidsByUser(nickname);
 			if(bidsDao == null) {
 				bidsDao = cosmosDBLayer.getBidsByUser(nickname);
+				// TODO
 			}
 		}
 		else {
@@ -163,7 +156,7 @@ public class RedisCosmosLayer {
 		try {
 			bid = cosmosDBLayer.replaceBid(bid).getItem();
 			if(RedisCache.IS_ACTIVE ) {
-				redisCache.putBid(bid);
+				redisCache.replaceBid(bid);
 			}
 		}
 		catch (CosmosException e) {
@@ -177,6 +170,7 @@ public class RedisCosmosLayer {
 			auctionsDao = redisCache.getAuctionsByUser(nickname);
 			if(auctionsDao == null) {
 				auctionsDao = cosmosDBLayer.getAuctionsByUser(nickname);
+				// TODO
 			}
 		}
 		else {
@@ -191,6 +185,7 @@ public class RedisCosmosLayer {
 			bidsDao = redisCache.getBidsByAuction(auctionId);
 			if(bidsDao == null) {
 				bidsDao = cosmosDBLayer.getBidsByAuction(auctionId);
+				// TODO
 			}
 		}
 		else {
