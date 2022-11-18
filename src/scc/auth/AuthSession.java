@@ -22,7 +22,6 @@ public class AuthSession {
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         String session = cookie.getValue();
-        System.out.println("Session: " + session);
         if (session == null || !cache.existSession(session) || !cache.getSession(session).equals(sessionId)) {
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }

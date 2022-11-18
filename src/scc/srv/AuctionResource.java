@@ -145,24 +145,12 @@ public class AuctionResource {
     @GET
     @Path("/{id}/bid/")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Bid> listBids(@CookieParam("scc:session") Cookie session, @PathParam("id") String auctionId, @HeaderParam("Cache-Control") String cacheControl) {
+    public List<Bid> listBids(@CookieParam("scc:session") Cookie session, @PathParam("id") String auctionId) {
         if(auctionId == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
         String uid = auth.getSession(session);
         auth.checkSession(session, uid);
-
-        //this is for testing purposes only
-        if(cacheControl != null && cacheControl.equals("no-store")){
-            AuctionDAO auctionDAO = cosmosDBLayer.getAuctionById(auctionId);
-            if(auctionDAO == null)
-                throw new WebApplicationException(Response.Status.NOT_FOUND);
-            List<BidDAO> list = cosmosDBLayer.getBidsByAuction(auctionId);
-            if(list == null){
-                return null;
-            }
-            return list.stream().map(BidDAO::toBid).collect(Collectors.toList());
-        }
 
         AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(auctionId);
         if(auctionDAO == null)
@@ -254,12 +242,11 @@ public class AuctionResource {
 
         try {
             List<AuctionDAO> auctionsDAO = redisCosmosLayer.getAuctionAboutToClose();
-            System.out.println(auctionsDAO != null);
-            if(auctionsDAO != null) {
-                for (AuctionDAO auctionDAO :auctionsDAO) {
-                    System.out.println(auctionDAO.toString());
-                }
-            }
+//            if(auctionsDAO != null) {
+//                for (AuctionDAO auctionDAO :auctionsDAO) {
+//                    System.out.println(auctionDAO.toString());
+//                }
+//            }
             if (auctionsDAO == null)
                 return null;
             return auctionsDAO.stream().map(AuctionDAO::toAuction).collect(Collectors.toList());
