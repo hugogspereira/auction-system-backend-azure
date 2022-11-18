@@ -222,7 +222,7 @@ public class RedisCosmosLayer {
 			auctionsDao = redisCache.getAuctionsByUser(nickname);
 			if(auctionsDao == null) {
 				auctionsDao = cosmosDBLayer.getAuctionsByUser(nickname);
-				if(auctionDao == null) { return null; }
+				if(auctionsDao == null) { return null; }
 				for (AuctionDAO auction: auctionsDao) {
 					redisCache.putAuction(auction);
 				}
