@@ -12,7 +12,6 @@ import scc.dao.QuestionDAO;
 import scc.dao.UserDAO;
 import scc.layers.BlobStorageLayer;
 import scc.layers.CognitiveSearchLayer;
-import scc.layers.CosmosDBLayer;
 import scc.layers.RedisCosmosLayer;
 import scc.model.Auction;
 import scc.model.Bid;
@@ -31,14 +30,12 @@ public class AuctionResource {
 
     private final RedisCosmosLayer redisCosmosLayer;
     private final BlobStorageLayer blobStorageLayer;
-    private final CosmosDBLayer cosmosDBLayer;
     private final AuthSession auth;
     private final CognitiveSearchLayer searchLayer;
 
     public AuctionResource() {
         redisCosmosLayer = RedisCosmosLayer.getInstance();
         blobStorageLayer = BlobStorageLayer.getInstance();
-        cosmosDBLayer = CosmosDBLayer.getInstance();
         auth = AuthSession.getInstance();
         searchLayer = CognitiveSearchLayer.getInstance();
     }
