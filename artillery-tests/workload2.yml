@@ -19,7 +19,7 @@ config:
 
 scenarios:
   - name: "User logs in, searches for an auction, bids on one and asks a question"
-    weight: 0
+    weight: 4
     flow:
       - function: "selectUserSkewed"
       - post:
@@ -121,7 +121,7 @@ scenarios:
         count: 5
 
   - name: "Another scenario of usage"
-    weight: 0
+    weight: 5
     flow:
       - function: "selectUserToLogin"
       - post:
@@ -190,7 +190,7 @@ scenarios:
             message: "{{ question }}"
 
   - name: "User deletes their account"
-    weight: 0
+    weight: 1
     flow:
       - function: "selectUserToLogin"
       - post:
