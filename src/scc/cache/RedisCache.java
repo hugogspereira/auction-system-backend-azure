@@ -26,13 +26,13 @@ public class RedisCache {
     private static RedisCache redisCache;
 
     public static final String AUCTION_KEY = "auction:";
-    public static final String USER_AUCTIONS_KEY = "user_auctions_";    //
+    public static final String USER_AUCTIONS_KEY = "user_auctions_";
 
     public static final String BID_KEY = "bid:";
-    public static final String BIDS_AUCTION_KEY = "bids_auction_";     //
+    public static final String BIDS_AUCTION_KEY = "bids_auction_";
 
     public static final String USER_KEY = "user:";
-    public static final String USER_BIDS_KEY = "user_bids_";           //
+    public static final String USER_BIDS_KEY = "user_bids_";
 
     private static final String SESSION_KEY = "session:";
 
@@ -91,18 +91,6 @@ public class RedisCache {
         }
     }
 
-    public void replaceUser(UserDAO user) {
-        ObjectMapper mapper = new ObjectMapper();
-        try(Jedis jedis = instance.getResource()) {
-            if(jedis.exists(USER_KEY+user.getId())) {
-                jedis.set(USER_KEY+user.getId(), mapper.writeValueAsString(user));
-                jedis.expire(USER_KEY+user.getId(),DEFAULT_EXP_TIME);
-            }
-        } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to put the user in cache.\n"+e.getMessage());
-        }
-    }
-
     public UserDAO getUser(String nickname) {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
@@ -124,73 +112,10 @@ public class RedisCache {
     }
 
 
-    // BIDS
-    public void putBid(BidDAO bid) {
-        ObjectMapper mapper = new ObjectMapper();
-        try(Jedis jedis = instance.getResource()) {
-            jedis.set(BID_KEY+bid.getId(), mapper.writeValueAsString(bid));
-            jedis.expire(BID_KEY+bid.getId(), DEFAULT_EXP_TIME);
 
-            if(!bid.getUserNickname().equals(DELETED_USER)) {
-                mapper = new ObjectMapper();
-                if(jedis.exists(USER_BIDS_KEY + bid.getUserNickname() + ":")) {
-                    jedis.lpush(USER_BIDS_KEY + bid.getUserNickname() + ":",  mapper.writeValueAsString(bid));
-                }
-                else {
-                    jedis.lpush(USER_BIDS_KEY + bid.getUserNickname() + ":",  mapper.writeValueAsString(bid));
-                    jedis.expire(USER_BIDS_KEY + bid.getUserNickname() + ":", DEFAULT_EXP_TIME);
-                }
-            }
 
-            mapper = new ObjectMapper();
-            if(jedis.exists(BIDS_AUCTION_KEY + bid.getAuctionId() + ":")) {
-                jedis.lpush(BIDS_AUCTION_KEY + bid.getAuctionId() + ":",  mapper.writeValueAsString(bid));
-            }
-            else {
-                jedis.lpush(BIDS_AUCTION_KEY + bid.getAuctionId() + ":",  mapper.writeValueAsString(bid));
-                jedis.expire(BIDS_AUCTION_KEY + bid.getAuctionId() + ":", DEFAULT_EXP_TIME);
-            }
-        } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
-        }
-    }
 
-    public void replaceBid(BidDAO bid) {
-        ObjectMapper mapper;
-        try(Jedis jedis = instance.getResource()) {
-            if(jedis.exists(BID_KEY+bid.getId())) {
-                mapper = new ObjectMapper();
-                jedis.set(BID_KEY+bid.getId(), mapper.writeValueAsString(bid));
-                jedis.expire(BID_KEY+bid.getId(), DEFAULT_EXP_TIME);
-            }
-        } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
-        }
-    }
 
-    public List<BidDAO> getBidsByUser(String nickname) {
-        ObjectMapper mapper = new ObjectMapper();
-        try(Jedis jedis = instance.getResource()) {
-            List<String> listOfBids = jedis.lrange(USER_BIDS_KEY+nickname+":", 0, -1);
-            if(listOfBids ==  null || listOfBids.isEmpty()) { return null; }
-            return mapper.readValue(listOfBids.toString(), mapper.getTypeFactory().constructCollectionType(List.class, BidDAO.class));
-        } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to get the bids in cache.\n"+e.getMessage());
-            return null;
-        }
-    }
-
-    public List<BidDAO> getBidsByAuction(String auctionId) {
-        ObjectMapper mapper = new ObjectMapper();
-        try(Jedis jedis = instance.getResource()){
-            List<String> listOfBids = jedis.lrange(BIDS_AUCTION_KEY+auctionId+":", 0, -1);
-            if(listOfBids ==  null || listOfBids.isEmpty()) { return null; }
-            return mapper.readValue(listOfBids.toString(), mapper.getTypeFactory().constructCollectionType(List.class, BidDAO.class));
-        } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to get the bids in cache.\n"+e.getMessage());
-            return null;
-        }
-    }
 
 
 
@@ -200,15 +125,29 @@ public class RedisCache {
         try(Jedis jedis = instance.getResource()) {
             jedis.set(AUCTION_KEY+auction.getId(), mapper.writeValueAsString(auction));
             jedis.expire(AUCTION_KEY+auction.getId(),DEFAULT_EXP_TIME);
+        } catch (JsonProcessingException e) {
+            System.out.println("Redis Cache: unable to put the auction in cache.\n"+e.getMessage());
+        }
+    }
 
-            if(!auction.getOwnerNickname().equals(DELETED_USER)) {
-                mapper = new ObjectMapper();
-                if(jedis.exists(USER_AUCTIONS_KEY+auction.getOwnerNickname()+":")) {
-                    jedis.lpush(USER_AUCTIONS_KEY+auction.getOwnerNickname()+":",  mapper.writeValueAsString(auction));
-                }
-                else {
-                    jedis.lpush(USER_AUCTIONS_KEY+auction.getOwnerNickname()+":",  mapper.writeValueAsString(auction));
-                    jedis.expire(USER_AUCTIONS_KEY+auction.getOwnerNickname()+":", DEFAULT_EXP_TIME);
+    public void putAuctionList(List<AuctionDAO> auctions) {
+        ObjectMapper mapper = new ObjectMapper();
+        try(Jedis jedis = instance.getResource()) {
+            String key;
+            boolean isUserAuctionsInCache;
+            boolean notDeleted = !auctions.isEmpty() && !auctions.get(0).getOwnerNickname().equals(DELETED_USER);
+
+            for (AuctionDAO auction: auctions) {
+                jedis.set(AUCTION_KEY+auction.getId(), mapper.writeValueAsString(auction));
+                jedis.expire(AUCTION_KEY+auction.getId(),DEFAULT_EXP_TIME);
+
+                if(notDeleted) {
+                    key = USER_AUCTIONS_KEY+auction.getOwnerNickname()+":";
+                    isUserAuctionsInCache = jedis.exists(key);
+                    jedis.lpush(key,  mapper.writeValueAsString(auction));
+                    if(!isUserAuctionsInCache) {
+                        jedis.expire(key, DEFAULT_EXP_TIME);
+                    }
                 }
             }
         } catch (JsonProcessingException e) {
@@ -219,11 +158,9 @@ public class RedisCache {
     public void replaceAuction(AuctionDAO auction) {
         ObjectMapper mapper;
         try(Jedis jedis = instance.getResource()) {
-            if(jedis.exists(AUCTION_KEY+auction.getId())) {
-                mapper = new ObjectMapper();
-                jedis.set(AUCTION_KEY+auction.getId(), mapper.writeValueAsString(auction));
-                jedis.expire(AUCTION_KEY+auction.getId(), DEFAULT_EXP_TIME);
-            }
+            mapper = new ObjectMapper();
+            jedis.set(AUCTION_KEY+auction.getId(), mapper.writeValueAsString(auction));
+            jedis.expire(AUCTION_KEY+auction.getId(), DEFAULT_EXP_TIME);
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the auction in cache.\n"+e.getMessage());
         }
@@ -255,6 +192,100 @@ public class RedisCache {
             return null;
         }
     }
+
+
+
+
+
+
+    // BIDS
+    public void putUserBidsList(List<BidDAO> bidsDao) {
+        ObjectMapper mapper = new ObjectMapper();
+        try(Jedis jedis = instance.getResource()) {
+            String key;
+            boolean isUserBidsInCache;
+            boolean notDeleted = !bidsDao.isEmpty() && !bidsDao.get(0).getUserNickname().equals(DELETED_USER);
+
+            for(BidDAO bid: bidsDao) {
+                jedis.set(BID_KEY + bid.getId(), mapper.writeValueAsString(bid));
+                jedis.expire(BID_KEY + bid.getId(), DEFAULT_EXP_TIME);
+
+                if(notDeleted) {
+                    //mapper = new ObjectMapper();
+                    key = USER_BIDS_KEY + bid.getUserNickname() + ":";
+                    isUserBidsInCache = jedis.exists(key);
+                    jedis.lpush(key,  mapper.writeValueAsString(bid));
+                    if(!isUserBidsInCache) {
+                        jedis.expire(key, DEFAULT_EXP_TIME);
+                    }
+                }
+            }
+        } catch (JsonProcessingException e) {
+            System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
+        }
+    }
+
+    public void putAuctionBidsList(List<BidDAO> bidsDao) {
+        ObjectMapper mapper = new ObjectMapper();
+        try(Jedis jedis = instance.getResource()) {
+            String key;
+            boolean isAuctionBidsInCache;
+
+            for(BidDAO bid: bidsDao) {
+                jedis.set(BID_KEY + bid.getId(), mapper.writeValueAsString(bid));
+                jedis.expire(BID_KEY + bid.getId(), DEFAULT_EXP_TIME);
+
+                //mapper = new ObjectMapper();
+                key = BIDS_AUCTION_KEY + bid.getAuctionId() + ":";
+                isAuctionBidsInCache = jedis.exists(key);
+                jedis.lpush(key,  mapper.writeValueAsString(bid));
+                if(!isAuctionBidsInCache) {
+                    jedis.expire(key, DEFAULT_EXP_TIME);
+                }
+            }
+        } catch (JsonProcessingException e) {
+            System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
+        }
+    }
+
+    public void replaceBid(BidDAO bid) {
+        ObjectMapper mapper;
+        try(Jedis jedis = instance.getResource()) {
+            mapper = new ObjectMapper();
+            jedis.set(BID_KEY+bid.getId(), mapper.writeValueAsString(bid));
+            jedis.expire(BID_KEY+bid.getId(), DEFAULT_EXP_TIME);
+        } catch (JsonProcessingException e) {
+            System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
+        }
+    }
+
+    public List<BidDAO> getBidsByUser(String nickname) {
+        ObjectMapper mapper = new ObjectMapper();
+        try(Jedis jedis = instance.getResource()) {
+            List<String> listOfBids = jedis.lrange(USER_BIDS_KEY+nickname+":", 0, -1);
+            if(listOfBids ==  null || listOfBids.isEmpty()) { return null; }
+            return mapper.readValue(listOfBids.toString(), mapper.getTypeFactory().constructCollectionType(List.class, BidDAO.class));
+        } catch (JsonProcessingException e) {
+            System.out.println("Redis Cache: unable to get the bids in cache.\n"+e.getMessage());
+            return null;
+        }
+    }
+
+    public List<BidDAO> getBidsByAuction(String auctionId) {
+        ObjectMapper mapper = new ObjectMapper();
+        try(Jedis jedis = instance.getResource()){
+            List<String> listOfBids = jedis.lrange(BIDS_AUCTION_KEY+auctionId+":", 0, -1);
+            if(listOfBids ==  null || listOfBids.isEmpty()) { return null; }
+            return mapper.readValue(listOfBids.toString(), mapper.getTypeFactory().constructCollectionType(List.class, BidDAO.class));
+        } catch (JsonProcessingException e) {
+            System.out.println("Redis Cache: unable to get the bids in cache.\n"+e.getMessage());
+            return null;
+        }
+    }
+
+
+
+
 
     // SESSION
     public void putSession(String sessionId, String nickname) {

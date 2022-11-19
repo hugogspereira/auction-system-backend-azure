@@ -55,7 +55,6 @@ public class UsersResource {
         return redisCosmosLayer.putUser(user);
     }
 
-    //TODO: test this method for new changes
     @DELETE
     @Path("/{nickname}")
     @Produces(MediaType.APPLICATION_JSON)
