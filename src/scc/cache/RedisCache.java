@@ -7,12 +7,8 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import scc.dao.AuctionDAO;
-import scc.dao.BidDAO;
 import scc.dao.UserDAO;
 
-import java.util.List;
-
-import static scc.dao.AuctionDAO.DELETED_USER;
 import static scc.utils.AzureProperties.REDIS_KEY;
 import static scc.utils.AzureProperties.REDIS_URL;
 
@@ -26,18 +22,13 @@ public class RedisCache {
     private static RedisCache redisCache;
 
     public static final String AUCTION_KEY = "auction:";
-    public static final String USER_AUCTIONS_KEY = "user_auctions_";
-
-    public static final String BID_KEY = "bid:";
-    public static final String BIDS_AUCTION_KEY = "bids_auction_";
 
     public static final String USER_KEY = "user:";
-    public static final String USER_BIDS_KEY = "user_bids_";
 
     private static final String SESSION_KEY = "session:";
 
     private static final int SESSION_EXP_TIME = 3600;
-    private static final int DEFAULT_EXP_TIME = 1800;
+    private static final int DEFAULT_EXP_TIME = 600;
 
     public RedisCache() {
         getCachePool();
@@ -69,15 +60,6 @@ public class RedisCache {
         return redisCache;
     }
 
-    /**
-     * This method invalidates the key for the lists, to prevent incoherence
-     * @param key - the key entry we will remove from cache
-     */
-    public void invalidateKey(String key) {
-        try(Jedis jedis = instance.getResource()) {
-            jedis.del(key);
-        }
-    }
 
 
     // USERS
@@ -106,8 +88,6 @@ public class RedisCache {
     public void deleteUser(String nickname) {
         try(Jedis jedis = instance.getResource()) {
             jedis.del(USER_KEY+nickname);
-            jedis.del(USER_BIDS_KEY+nickname+":");
-            jedis.del(USER_AUCTIONS_KEY+nickname+":");
         }
     }
 
@@ -125,31 +105,6 @@ public class RedisCache {
         try(Jedis jedis = instance.getResource()) {
             jedis.set(AUCTION_KEY+auction.getId(), mapper.writeValueAsString(auction));
             jedis.expire(AUCTION_KEY+auction.getId(),DEFAULT_EXP_TIME);
-        } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to put the auction in cache.\n"+e.getMessage());
-        }
-    }
-
-    public void putAuctionList(List<AuctionDAO> auctions) {
-        ObjectMapper mapper = new ObjectMapper();
-        try(Jedis jedis = instance.getResource()) {
-            String key;
-            boolean isUserAuctionsInCache;
-            boolean notDeleted = !auctions.isEmpty() && !auctions.get(0).getOwnerNickname().equals(DELETED_USER);
-
-            for (AuctionDAO auction: auctions) {
-                jedis.set(AUCTION_KEY+auction.getId(), mapper.writeValueAsString(auction));
-                jedis.expire(AUCTION_KEY+auction.getId(),DEFAULT_EXP_TIME);
-
-                if(notDeleted) {
-                    key = USER_AUCTIONS_KEY+auction.getOwnerNickname()+":";
-                    isUserAuctionsInCache = jedis.exists(key);
-                    jedis.lpush(key,  mapper.writeValueAsString(auction));
-                    if(!isUserAuctionsInCache) {
-                        jedis.expire(key, DEFAULT_EXP_TIME);
-                    }
-                }
-            }
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the auction in cache.\n"+e.getMessage());
         }
@@ -175,110 +130,6 @@ public class RedisCache {
             return mapper.readValue(stringAuction, AuctionDAO.class);
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to get the auction in cache.\n"+e.getMessage());
-            return null;
-        }
-    }
-
-    public List<AuctionDAO> getAuctionsByUser(String nickname) {
-        ObjectMapper mapper = new ObjectMapper();
-        try (Jedis jedis = instance.getResource()) {
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-            List<String> listOfAuctions = jedis.lrange(USER_AUCTIONS_KEY+nickname+":", 0, -1);
-            if(listOfAuctions ==  null || listOfAuctions.isEmpty()) { return null; }
-            return mapper.readValue(listOfAuctions.toString(), mapper.getTypeFactory().constructCollectionType(List.class, AuctionDAO.class));
-        } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to get the auctions in cache.\n"+e.getMessage());
-            return null;
-        }
-    }
-
-
-
-
-
-
-    // BIDS
-    public void putUserBidsList(List<BidDAO> bidsDao) {
-        ObjectMapper mapper = new ObjectMapper();
-        try(Jedis jedis = instance.getResource()) {
-            String key;
-            boolean isUserBidsInCache;
-            boolean notDeleted = !bidsDao.isEmpty() && !bidsDao.get(0).getUserNickname().equals(DELETED_USER);
-
-            for(BidDAO bid: bidsDao) {
-                jedis.set(BID_KEY + bid.getId(), mapper.writeValueAsString(bid));
-                jedis.expire(BID_KEY + bid.getId(), DEFAULT_EXP_TIME);
-
-                if(notDeleted) {
-                    //mapper = new ObjectMapper();
-                    key = USER_BIDS_KEY + bid.getUserNickname() + ":";
-                    isUserBidsInCache = jedis.exists(key);
-                    jedis.lpush(key,  mapper.writeValueAsString(bid));
-                    if(!isUserBidsInCache) {
-                        jedis.expire(key, DEFAULT_EXP_TIME);
-                    }
-                }
-            }
-        } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
-        }
-    }
-
-    public void putAuctionBidsList(List<BidDAO> bidsDao) {
-        ObjectMapper mapper = new ObjectMapper();
-        try(Jedis jedis = instance.getResource()) {
-            String key;
-            boolean isAuctionBidsInCache;
-
-            for(BidDAO bid: bidsDao) {
-                jedis.set(BID_KEY + bid.getId(), mapper.writeValueAsString(bid));
-                jedis.expire(BID_KEY + bid.getId(), DEFAULT_EXP_TIME);
-
-                //mapper = new ObjectMapper();
-                key = BIDS_AUCTION_KEY + bid.getAuctionId() + ":";
-                isAuctionBidsInCache = jedis.exists(key);
-                jedis.lpush(key,  mapper.writeValueAsString(bid));
-                if(!isAuctionBidsInCache) {
-                    jedis.expire(key, DEFAULT_EXP_TIME);
-                }
-            }
-        } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
-        }
-    }
-
-    public void replaceBid(BidDAO bid) {
-        ObjectMapper mapper;
-        try(Jedis jedis = instance.getResource()) {
-            mapper = new ObjectMapper();
-            jedis.set(BID_KEY+bid.getId(), mapper.writeValueAsString(bid));
-            jedis.expire(BID_KEY+bid.getId(), DEFAULT_EXP_TIME);
-        } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to put the bid in cache.\n"+e.getMessage());
-        }
-    }
-
-    public List<BidDAO> getBidsByUser(String nickname) {
-        ObjectMapper mapper = new ObjectMapper();
-        try(Jedis jedis = instance.getResource()) {
-            List<String> listOfBids = jedis.lrange(USER_BIDS_KEY+nickname+":", 0, -1);
-            if(listOfBids ==  null || listOfBids.isEmpty()) { return null; }
-            return mapper.readValue(listOfBids.toString(), mapper.getTypeFactory().constructCollectionType(List.class, BidDAO.class));
-        } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to get the bids in cache.\n"+e.getMessage());
-            return null;
-        }
-    }
-
-    public List<BidDAO> getBidsByAuction(String auctionId) {
-        ObjectMapper mapper = new ObjectMapper();
-        try(Jedis jedis = instance.getResource()){
-            List<String> listOfBids = jedis.lrange(BIDS_AUCTION_KEY+auctionId+":", 0, -1);
-            if(listOfBids ==  null || listOfBids.isEmpty()) { return null; }
-            return mapper.readValue(listOfBids.toString(), mapper.getTypeFactory().constructCollectionType(List.class, BidDAO.class));
-        } catch (JsonProcessingException e) {
-            System.out.println("Redis Cache: unable to get the bids in cache.\n"+e.getMessage());
             return null;
         }
     }

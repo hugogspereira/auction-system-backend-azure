@@ -239,11 +239,6 @@ public class AuctionResource {
 
         try {
             List<AuctionDAO> auctionsDAO = redisCosmosLayer.getAuctionAboutToClose();
-//            if(auctionsDAO != null) {
-//                for (AuctionDAO auctionDAO :auctionsDAO) {
-//                    System.out.println(auctionDAO.toString());
-//                }
-//            }
             if (auctionsDAO == null)
                 return null;
             return auctionsDAO.stream().map(AuctionDAO::toAuction).collect(Collectors.toList());
