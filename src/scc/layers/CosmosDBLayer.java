@@ -15,6 +15,7 @@ import scc.dao.BidDAO;
 import scc.dao.QuestionDAO;
 import scc.dao.UserDAO;
 import scc.utils.AuctionStatus;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -23,7 +24,7 @@ import java.util.List;
 
 import static scc.utils.AzureProperties.*;
 
-public class CosmosDBLayer {
+public class CosmosDBLayer implements DatabaseLayer {
 	private static final String CONNECTION_URL = System.getenv(COSMOSDB_URL);
 	private static final String DB_KEY = System.getenv(COSMOSDB_KEY);
 	private static final String DB_NAME = System.getenv(COSMOSDB_DATABASE);
@@ -72,20 +73,16 @@ public class CosmosDBLayer {
 
 	}
 
-	public CosmosItemResponse<Object> delUserById(String id) {
+	// Users
+	public void delUserById(String id) {
 		init();
 		PartitionKey key = new PartitionKey(id);
-		return users.deleteItem(id, key, new CosmosItemRequestOptions());
+		users.deleteItem(id, key, new CosmosItemRequestOptions());
 	}
 	
-	public CosmosItemResponse<Object> delUser(UserDAO user) {
+	public UserDAO putUser(UserDAO user) {
 		init();
-		return users.deleteItem(user, new CosmosItemRequestOptions());
-	}
-	
-	public CosmosItemResponse<UserDAO> putUser(UserDAO user) {
-		init();
-		return users.createItem(user);
+		return users.createItem(user).getItem();
 	}
 
 	public UserDAO getUserById(String id) {
@@ -98,21 +95,16 @@ public class CosmosDBLayer {
 		return userDAO;
 	}
 
-	public CosmosItemResponse<UserDAO> replaceUser(UserDAO user) {
+	public UserDAO replaceUser(UserDAO user) {
 		init();
 		PartitionKey key = new PartitionKey(user.getId());
-		return users.replaceItem(user, user.getId(), key, new CosmosItemRequestOptions());
-	}
-
-	public CosmosPagedIterable<UserDAO> getUsers() {
-		init();
-		return users.queryItems("SELECT * FROM users ", new CosmosQueryRequestOptions(), UserDAO.class);
+		return users.replaceItem(user, user.getId(), key, new CosmosItemRequestOptions()).getItem();
 	}
 
 	// Auctions
-	public CosmosItemResponse<AuctionDAO> putAuction(AuctionDAO auction) {
+	public AuctionDAO putAuction(AuctionDAO auction) {
 		init();
-		return auctions.createItem(auction);
+		return auctions.createItem(auction).getItem();
 	}
 
 	public AuctionDAO getAuctionById(String id) {
@@ -125,16 +117,10 @@ public class CosmosDBLayer {
 		return auctionDAO;
 	}
 
-	public CosmosItemResponse<Object> delAuctionById(String id) {
-		init();
-		PartitionKey key = new PartitionKey(id);
-		return auctions.deleteItem(id, key, new CosmosItemRequestOptions());
-	}
-
-	public CosmosItemResponse<AuctionDAO> replaceAuction(AuctionDAO auction) {
+	public AuctionDAO replaceAuction(AuctionDAO auction) {
 		init();
 		PartitionKey key = new PartitionKey(auction.getId());
-		return auctions.replaceItem(auction, auction.getId(), key, new CosmosItemRequestOptions());
+		return auctions.replaceItem(auction, auction.getId(), key, new CosmosItemRequestOptions()).getItem();
 	}
 
 	public List<AuctionDAO> getAuctionsByUser(String nickname) {
@@ -160,9 +146,9 @@ public class CosmosDBLayer {
 	}
 
 	// Bids
-	public CosmosItemResponse<BidDAO> putBid(BidDAO bid) {
+	public BidDAO putBid(BidDAO bid) {
 		init();
-		return bids.createItem(bid);
+		return bids.createItem(bid).getItem();
 	}
 
 	public List<BidDAO> getBidsByAuction(String auctionId) {
@@ -177,15 +163,15 @@ public class CosmosDBLayer {
 		return iterable.stream().toList();
 	}
 
-	public CosmosItemResponse<BidDAO> replaceBid(BidDAO bid) {
+	public BidDAO replaceBid(BidDAO bid) {
 		init();
 		PartitionKey key = new PartitionKey(bid.getId());
-		return bids.replaceItem(bid, bid.getId(), key, new CosmosItemRequestOptions());
+		return bids.replaceItem(bid, bid.getId(), key, new CosmosItemRequestOptions()).getItem();
 	}
 
-	public CosmosItemResponse<QuestionDAO> putQuestion(QuestionDAO question) {
+	public QuestionDAO putQuestion(QuestionDAO question) {
 		init();
-		return questions.createItem(question);
+		return questions.createItem(question).getItem();
 	}
 
 	public QuestionDAO getQuestionById(String id){

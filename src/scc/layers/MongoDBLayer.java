@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import static scc.utils.AzureProperties.COSMOSDB_DATABASE;
 
-public class MongoDBLayer {
+public class MongoDBLayer implements DatabaseLayer {
 
 	private static final String USERS = "users";
 	private static final String AUCTIONS = "auctions";
