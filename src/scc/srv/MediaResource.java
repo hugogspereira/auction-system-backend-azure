@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
-import scc.layers.BlobStorageLayer;
+import scc.layers.BlobPersistentLayer;
 import scc.utils.Hash;
 
 import jakarta.ws.rs.core.MediaType;
@@ -15,7 +15,7 @@ import jakarta.ws.rs.core.MediaType;
 @Path("/media")
 public class MediaResource
 {
-	BlobStorageLayer blob = BlobStorageLayer.getInstance();
+	BlobPersistentLayer blob = BlobPersistentLayer.getInstance();
 	ObjectMapper mapper = new ObjectMapper();
 
 	/**

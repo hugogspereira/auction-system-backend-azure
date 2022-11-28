@@ -10,8 +10,8 @@ import scc.auth.AuthSession;
 import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
 import scc.dao.UserDAO;
-import scc.layers.BlobStorageLayer;
-import scc.layers.RedisCosmosLayer;
+import scc.layers.BlobPersistentLayer;
+import scc.layers.RedisMongoLayer;
 import scc.model.Auction;
 import scc.model.Login;
 import scc.model.User;
@@ -29,13 +29,13 @@ public class UsersResource {
 
     public static final String PATH = "/user";
 
-    private final BlobStorageLayer blobStorageLayer;
-    private final RedisCosmosLayer redisCosmosLayer;
+    private final BlobPersistentLayer blobPersistentLayer;
+    private final RedisMongoLayer redisMongoLayer;
     private final AuthSession auth;
 
     public UsersResource() {
-        blobStorageLayer = BlobStorageLayer.getInstance();
-        redisCosmosLayer = RedisCosmosLayer.getInstance();
+        blobPersistentLayer = BlobPersistentLayer.getInstance();
+        redisMongoLayer = RedisMongoLayer.getInstance();
         auth = AuthSession.getInstance();
     }
 
@@ -44,15 +44,15 @@ public class UsersResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public User createUser(User user) {
-        if (user == null || user.getNickname() == null || user.getName() == null || user.getPwd() == null || user.getPhotoId() == null || redisCosmosLayer.getUserById(user.getNickname()) != null) {
+        if (user == null || user.getNickname() == null || user.getName() == null || user.getPwd() == null || user.getPhotoId() == null || redisMongoLayer.getUserById(user.getNickname()) != null) {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
-        if (!blobStorageLayer.existsBlob(user.getPhotoId())) {
+        if (!blobPersistentLayer.existsBlob(user.getPhotoId())) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         // Create User
         user.setPwd(Hash.of(user.getPwd()));
-        return redisCosmosLayer.putUser(user);
+        return redisMongoLayer.putUser(user);
     }
 
     @DELETE
@@ -66,7 +66,7 @@ public class UsersResource {
         auth.checkSession(session, nickname);
 
         // Get User
-        UserDAO userDao = redisCosmosLayer.getUserById(nickname);
+        UserDAO userDao = redisMongoLayer.getUserById(nickname);
         // See if User exists
         if (userDao == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -74,15 +74,15 @@ public class UsersResource {
         checkPwd(userDao.getPwd(), password);
 
         // Check if there is not an OPEN auction
-        List<AuctionDAO> auctions = redisCosmosLayer.getAuctionsByUser(nickname);
+        List<AuctionDAO> auctions = redisMongoLayer.getAuctionsByUser(nickname);
         if (auctions.stream().anyMatch(auctionDAO -> auctionDAO.isOpen())) {
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         }
 
         // Check if user has a bid on open auctions
-        List<BidDAO> bids = redisCosmosLayer.getBidsByUser(nickname);
+        List<BidDAO> bids = redisMongoLayer.getBidsByUser(nickname);
         if(bids.stream().anyMatch(bidDAO -> {
-            AuctionDAO auction = redisCosmosLayer.getAuctionById(bidDAO.getAuctionId());
+            AuctionDAO auction = redisMongoLayer.getAuctionById(bidDAO.getAuctionId());
             return auction == null || auction.isOpen();
         })) {
             throw new WebApplicationException(Response.Status.FORBIDDEN);
@@ -93,13 +93,13 @@ public class UsersResource {
             auctions.forEach(auctionDAO -> {
                 auctionDAO.setOwnerNickname(DELETED_USER);
                 auctionDAO.setStatus(AuctionStatus.DELETED);
-                redisCosmosLayer.replaceAuction(auctionDAO);
+                redisMongoLayer.replaceAuction(auctionDAO);
             });
             bids.forEach(bidDAO -> {
                 bidDAO.setUserNickname(DELETED_USER);
-                redisCosmosLayer.replaceBid(bidDAO);
+                redisMongoLayer.replaceBid(bidDAO);
             });
-            redisCosmosLayer.deleteUser(nickname);
+            redisMongoLayer.deleteUser(nickname);
             //delete the cookie auth
             auth.deleteSession(session);
         } catch (CosmosException e) {
@@ -119,9 +119,9 @@ public class UsersResource {
         auth.checkSession(session, nickname);
 
         // Get User
-        UserDAO userDao = redisCosmosLayer.getUserById(nickname);
+        UserDAO userDao = redisMongoLayer.getUserById(nickname);
         // See if User exists
-        if (userDao == null || !blobStorageLayer.existsBlob(user.getPhotoId())) {
+        if (userDao == null || !blobPersistentLayer.existsBlob(user.getPhotoId())) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         checkPwd(userDao.getPwd(), password);
@@ -129,7 +129,7 @@ public class UsersResource {
         userDao.setName(user.getName());
         userDao.setPwd(Hash.of(user.getPwd()));
         userDao.setPhotoId(user.getPhotoId());
-        redisCosmosLayer.replaceUser(userDao);
+        redisMongoLayer.replaceUser(userDao);
     }
 
     private void checkPwd(String expectedPwd, String pwd) {
@@ -148,11 +148,11 @@ public class UsersResource {
 
         auth.checkSession(session, nickname);
 
-        if (redisCosmosLayer.getUserById(nickname) == null)
+        if (redisMongoLayer.getUserById(nickname) == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
         try {
-            List<AuctionDAO> auctionsDAO = redisCosmosLayer.getAuctionsByUser(nickname);
+            List<AuctionDAO> auctionsDAO = redisMongoLayer.getAuctionsByUser(nickname);
             if (auctionsDAO == null)
                 return null;
             return auctionsDAO.stream().map(auctionDAO -> auctionDAO.toAuction()).collect(Collectors.toList());
@@ -173,7 +173,7 @@ public class UsersResource {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
 
-        UserDAO userDAO = redisCosmosLayer.getUserById(nickname);
+        UserDAO userDAO = redisMongoLayer.getUserById(nickname);
 
         if (userDAO == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);

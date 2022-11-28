@@ -10,9 +10,9 @@ import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
 import scc.dao.QuestionDAO;
 import scc.dao.UserDAO;
-import scc.layers.BlobStorageLayer;
+import scc.layers.BlobPersistentLayer;
 import scc.layers.CognitiveSearchLayer;
-import scc.layers.RedisCosmosLayer;
+import scc.layers.RedisMongoLayer;
 import scc.model.Auction;
 import scc.model.Bid;
 import scc.model.Question;
@@ -28,14 +28,14 @@ public class AuctionResource {
 
     public static final String PATH = "/auction";
 
-    private final RedisCosmosLayer redisCosmosLayer;
-    private final BlobStorageLayer blobStorageLayer;
+    private final RedisMongoLayer redisMongoLayer;
+    private final BlobPersistentLayer blobPersistentLayer;
     private final AuthSession auth;
     private final CognitiveSearchLayer searchLayer;
 
     public AuctionResource() {
-        redisCosmosLayer = RedisCosmosLayer.getInstance();
-        blobStorageLayer = BlobStorageLayer.getInstance();
+        redisMongoLayer = RedisMongoLayer.getInstance();
+        blobPersistentLayer = BlobPersistentLayer.getInstance();
         auth = AuthSession.getInstance();
         searchLayer = CognitiveSearchLayer.getInstance();
     }
@@ -47,12 +47,12 @@ public class AuctionResource {
     public Auction createAuction(@CookieParam("scc:session") Cookie session, Auction auction) {
         if(auction == null || auction.getTitle() == null || auction.getDescription() == null || auction.getPhotoId() == null ||
                 auction.getOwnerNickname() == null || auction.getEndTime() == null || auction.getMinPrice() <= 0 ||
-                redisCosmosLayer.getUserById(auction.getOwnerNickname()) == null)
+                redisMongoLayer.getUserById(auction.getOwnerNickname()) == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
         auth.checkSession(session, auction.getOwnerNickname());
 
-        if(!blobStorageLayer.existsBlob(auction.getPhotoId()))
+        if(!blobPersistentLayer.existsBlob(auction.getPhotoId()))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
         if(LocalDateTime.parse(auction.getEndTime()).isBefore(LocalDateTime.now(ZoneId.systemDefault()))) {
@@ -60,7 +60,7 @@ public class AuctionResource {
         }
 
         auction.setId(IdGenerator.generate());
-        return redisCosmosLayer.putAuction(auction);
+        return redisMongoLayer.putAuction(auction);
     }
 
     @PUT
@@ -72,8 +72,8 @@ public class AuctionResource {
 
         auth.checkSession(session, auction.getOwnerNickname());
 
-        AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(id);
-        if(auctionDAO == null || !blobStorageLayer.existsBlob(auction.getPhotoId()))
+        AuctionDAO auctionDAO = redisMongoLayer.getAuctionById(id);
+        if(auctionDAO == null || !blobPersistentLayer.existsBlob(auction.getPhotoId()))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
         if(auctionDAO.isOpen()) {
@@ -91,7 +91,7 @@ public class AuctionResource {
         auctionDAO.setTitle(auction.getTitle());
         auctionDAO.setDescription(auction.getDescription());
         auctionDAO.setPhotoId(auction.getPhotoId());
-        redisCosmosLayer.replaceAuction(auctionDAO);
+        redisMongoLayer.replaceAuction(auctionDAO);
     }
 
     @GET
@@ -122,8 +122,8 @@ public class AuctionResource {
 
         auth.checkSession(session, bid.getUserNickname());
 
-        AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(auctionId);
-        UserDAO userDAO = redisCosmosLayer.getUserById(bid.getUserNickname());
+        AuctionDAO auctionDAO = redisMongoLayer.getAuctionById(auctionId);
+        UserDAO userDAO = redisMongoLayer.getUserById(bid.getUserNickname());
         if(auctionDAO == null || userDAO == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         if(!auctionDAO.isOpen() || auctionDAO.getOwnerNickname().equals(bid.getUserNickname()))
@@ -136,7 +136,7 @@ public class AuctionResource {
 
         auctionDAO.setWinnerBid(bid.getId());
         auctionDAO.setWinningValue(bid.getValue());
-        return redisCosmosLayer.putBid(bid,auctionDAO);
+        return redisMongoLayer.putBid(bid,auctionDAO);
     }
 
     @GET
@@ -149,12 +149,12 @@ public class AuctionResource {
         String uid = auth.getSession(session);
         auth.checkSession(session, uid);
 
-        AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(auctionId);
+        AuctionDAO auctionDAO = redisMongoLayer.getAuctionById(auctionId);
         if(auctionDAO == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
         try {
-            List<BidDAO> bidsDAO = redisCosmosLayer.getBidsByAuction(auctionId);
+            List<BidDAO> bidsDAO = redisMongoLayer.getBidsByAuction(auctionId);
             if(bidsDAO == null)
                 return null;
             return bidsDAO.stream().map(bidDAO -> bidDAO.toBid()).collect(Collectors.toList());
@@ -175,13 +175,13 @@ public class AuctionResource {
 
         auth.checkSession(session, question.getUserNickname());
 
-        AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(auctionId);
-        if(redisCosmosLayer.getUserById(question.getUserNickname()) == null || auctionDAO == null)
+        AuctionDAO auctionDAO = redisMongoLayer.getAuctionById(auctionId);
+        if(redisMongoLayer.getUserById(question.getUserNickname()) == null || auctionDAO == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
         //in case of a reply, check if the question exists and if the user is the owner of the auction
         if(question.isReply()){
-            if(redisCosmosLayer.getQuestionById(question.getQuestionId()) == null)
+            if(redisMongoLayer.getQuestionById(question.getQuestionId()) == null)
                 throw new WebApplicationException(Response.Status.NOT_FOUND);
             if(!auctionDAO.getOwnerNickname().equals(question.getUserNickname()))
                 throw new WebApplicationException(Response.Status.FORBIDDEN);
@@ -196,7 +196,7 @@ public class AuctionResource {
         }
 
         try {
-            redisCosmosLayer.putQuestion(question);
+            redisMongoLayer.putQuestion(question);
         } catch (CosmosException e) {
             throw new WebApplicationException(e.getStatusCode());
         }
@@ -213,12 +213,12 @@ public class AuctionResource {
         String uid = auth.getSession(session);
         auth.checkSession(session, uid);
 
-        AuctionDAO auctionDAO = redisCosmosLayer.getAuctionById(auctionId);
+        AuctionDAO auctionDAO = redisMongoLayer.getAuctionById(auctionId);
         if(auctionDAO == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
 
         try {
-            List<QuestionDAO> list = redisCosmosLayer.getQuestionsByAuctionId(auctionId);
+            List<QuestionDAO> list = redisMongoLayer.getQuestionsByAuctionId(auctionId);
             if(list == null)
                 return null;
             //removes all replies
@@ -238,7 +238,7 @@ public class AuctionResource {
         auth.checkSession(session, uid);
 
         try {
-            List<AuctionDAO> auctionsDAO = redisCosmosLayer.getAuctionAboutToClose();
+            List<AuctionDAO> auctionsDAO = redisMongoLayer.getAuctionAboutToClose();
             if (auctionsDAO == null)
                 return null;
             return auctionsDAO.stream().map(AuctionDAO::toAuction).collect(Collectors.toList());
