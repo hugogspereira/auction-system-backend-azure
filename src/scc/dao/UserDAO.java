@@ -7,9 +7,9 @@ import scc.model.User;
  */
 public class UserDAO {
 
-	private String _rid;
-	private String _ts;
-	private String id;		//it's the nickname
+	//private String _rid;
+	//private String _ts;
+	private String _id;		//it's the nickname
 	private String name;
 	private String pwd;
 	private String photoId;
@@ -21,14 +21,15 @@ public class UserDAO {
 		this(u.getNickname(), u.getName(), u.getPwd(), u.getPhotoId());
 	}
 
-	public UserDAO(String id, String name, String pwd, String photoId) {
+	public UserDAO(String _id, String name, String pwd, String photoId) {
 		super();
-		this.id = id;
+		this._id = _id;
 		this.name = name;
 		this.pwd = pwd;
 		this.photoId = photoId;
 	}
 
+	/*
 	public String get_rid() {
 		return _rid;
 	}
@@ -41,11 +42,13 @@ public class UserDAO {
 	public void set_ts(String _ts) {
 		this._ts = _ts;
 	}
-	public String getId() {
-		return id;
+	 */
+
+	public String get_id() {
+		return _id;
 	}
-	public void setId(String id) {
-		this.id = id;
+	public void set_id(String _id) {
+		this._id = _id;
 	}
 	public String getName() {
 		return name;
@@ -66,11 +69,11 @@ public class UserDAO {
 		this.photoId = photoId;
 	}
 	public User toUser() {
-		return new User(id, name, pwd, photoId);
+		return new User(_id, name, pwd, photoId);
 	}
 	@Override
 	public String toString() {
-		return "UserDAO [_rid=" + _rid + ", _ts=" + _ts + ", nickname=" + id + ", name=" + name + ", pwd=" + pwd
+		return "UserDAO [_id=" + _id + ", name=" + name + ", pwd=" + pwd
 				+ ", photoId=" + photoId + "]";
 	}
 

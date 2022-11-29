@@ -7,9 +7,9 @@ public class AuctionDAO {
 
     public static String DELETED_USER = "Deleted User";
 
-    private String _rid;
-    private String _ts;
-    private String id;
+    //private String _rid;
+    //private String _ts;
+    private String _id;
     private String title;
     private String description;
     private String photoId;
@@ -27,10 +27,10 @@ public class AuctionDAO {
         this(a.getId(), a.getTitle(), a.getDescription(), a.getPhotoId(), a.getOwnerNickname(), a.getEndTime(), a.getMinPrice());
     }
 
-    public AuctionDAO(String id, String title, String description, String photoId, String ownerNickname,
+    public AuctionDAO(String _id, String title, String description, String photoId, String ownerNickname,
                       String endTime, float minPrice) {
         super();
-        this.id = id;
+        this._id = _id;
         this.title = title;
         this.description = description;
         this.photoId = photoId;
@@ -42,6 +42,7 @@ public class AuctionDAO {
         this.winningValue = 0;
     }
 
+    /*
     public String get_rid() {
         return _rid;
     }
@@ -54,11 +55,13 @@ public class AuctionDAO {
     public void set_ts(String _ts) {
         this._ts = _ts;
     }
-    public String getId() {
-        return id;
+     */
+
+    public String get_id() {
+        return _id;
     }
-    public void setId(String id) {
-        this.id = id;
+    public void set_id(String _id) {
+        this._id = _id;
     }
     public String getTitle() {
         return title;
@@ -110,7 +113,7 @@ public class AuctionDAO {
     }
 
     public Auction toAuction() {
-        return new Auction(status, id, title, description, photoId, ownerNickname, endTime, minPrice, winnerBid);
+        return new Auction(status, _id, title, description, photoId, ownerNickname, endTime, minPrice, winnerBid);
     }
 
     public float getWinningValue() {
@@ -132,9 +135,7 @@ public class AuctionDAO {
     @Override
     public String toString() {
         return "AuctionDAO{" +
-                "_rid='" + _rid + '\'' +
-                ", _ts='" + _ts + '\'' +
-                ", id='" + id + '\'' +
+                "_id='" + _id + '\'' +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", photoId='" + photoId + '\'' +

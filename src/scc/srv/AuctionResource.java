@@ -31,13 +31,13 @@ public class AuctionResource {
     private final CachenDatabaseLayer cachenDatabaseLayer;
     private final BlobPersistentLayer blobPersistentLayer;
     private final AuthSession auth;
-    private final CognitiveSearchLayer searchLayer;
+    //private final CognitiveSearchLayer searchLayer;
 
     public AuctionResource() {
         cachenDatabaseLayer = CachenDatabaseLayer.getInstance();
         blobPersistentLayer = BlobPersistentLayer.getInstance();
         auth = AuthSession.getInstance();
-        searchLayer = CognitiveSearchLayer.getInstance();
+        //searchLayer = CognitiveSearchLayer.getInstance();
     }
 
     @POST
@@ -107,7 +107,8 @@ public class AuctionResource {
 
         auth.checkSession(session, nickname);
 
-        return searchLayer.searchAuctions(query);
+        throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        //return searchLayer.searchAuctions(query);
     }
 
     // -------- Bids --------

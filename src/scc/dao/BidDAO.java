@@ -4,9 +4,9 @@ import scc.model.Bid;
 
 public class BidDAO {
 
-    private String _rid;
-    private String _ts;
-    private String id;
+    //private String _rid;
+    //private String _ts;
+    private String _id;
     private String auctionId;
     private String userNickname;
     private float value;
@@ -18,14 +18,15 @@ public class BidDAO {
         this(bid.getId(), bid.getAuctionId(), bid.getUserNickname(), bid.getValue());
     }
 
-    public BidDAO(String id, String auctionId, String userNickname, float value) {
+    public BidDAO(String _id, String auctionId, String userNickname, float value) {
         super();
-        this.id = id;
+        this._id = _id;
         this.auctionId = auctionId;
         this.userNickname = userNickname;
         this.value = value;
     }
 
+    /*
     public String get_rid() {
         return _rid;
     }
@@ -41,13 +42,14 @@ public class BidDAO {
     public void set_ts(String _ts) {
         this._ts = _ts;
     }
+     */
 
-    public String getId() {
-        return id;
+    public String get_id() {
+        return _id;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void set_id(String _id) {
+        this._id = _id;
     }
 
     public String getAuctionId() {
@@ -75,15 +77,13 @@ public class BidDAO {
     }
 
     public Bid toBid() {
-        return new Bid(id, auctionId, userNickname, value);
+        return new Bid(_id, auctionId, userNickname, value);
     }
 
     @Override
     public String toString() {
         return "BidDAO{" +
-                "_rid='" + _rid + '\'' +
-                ", _ts='" + _ts + '\'' +
-                ", id='" + id + '\'' +
+                "_id='" + _id + '\'' +
                 ", auctionId='" + auctionId + '\'' +
                 ", userNickname='" + userNickname + '\'' +
                 ", value=" + value +

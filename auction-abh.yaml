@@ -56,6 +56,51 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      nodeSeletor:
+        "kubernetes.io/os": linux
+      containers:
+        - name: mongo
+          image: mongo
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: admin
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: abh
+          resources:
+            requests:
+              cpu: 750m
+              memory: 768Mi
+            limits:
+              cpu: 2000m
+              memory: 2048Mi
+          ports:
+            - containerPort: 27017
+              name: mongo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+spec:
+  ports:
+    - port: 27017
+  selector:
+    app: mongo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: auction-abh-back
 spec:
   replicas: 1
@@ -76,10 +121,12 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: ???                   # TODO
-              value: ???
-            - name: ???
-              value: ???
+            - name: "REDIS_URL"
+              value: redis
+            - name: "MONGODB_DATABASE"
+              value: mongodbabh
+            - name: "MONGODB_HOSTNAME"
+              value: mongo
           resources:
             requests:
               cpu: 250m

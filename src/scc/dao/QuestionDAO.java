@@ -4,9 +4,9 @@ import scc.model.Question;
 
 public class QuestionDAO {
 
-    private String _rid;
-    private String _ts;
-    private String id;
+    //private String _rid;
+    //private String _ts;
+    private String _id;
     private boolean reply; //if this is a reply to the question then it's true
     private String questionId; //if this is a reply to the question then it's the id of the question
     private String auctionId;
@@ -16,9 +16,9 @@ public class QuestionDAO {
     public QuestionDAO() {
     } //to deserialize JSON
 
-    public QuestionDAO(String id, boolean reply, String questionId, String auctionId, String userNickname, String message) {
+    public QuestionDAO(String _id, boolean reply, String questionId, String auctionId, String userNickname, String message) {
         super();
-        this.id = id;
+        this._id = _id;
         this.reply = reply;
         this.questionId = questionId;
         this.auctionId = auctionId;
@@ -30,6 +30,7 @@ public class QuestionDAO {
         this(question.getId(), question.isReply(), question.getQuestionId(), question.getAuctionId(), question.getUserNickname(), question.getMessage());
     }
 
+    /*
     public String get_rid() {
         return _rid;
     }
@@ -45,13 +46,14 @@ public class QuestionDAO {
     public void set_ts(String _ts) {
         this._ts = _ts;
     }
+     */
 
-    public String getId() {
-        return id;
+    public String get_id() {
+        return _id;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void set_id(String _id) {
+        this._id = _id;
     }
 
     public boolean isReply() {
@@ -95,11 +97,11 @@ public class QuestionDAO {
     }
 
     public Question toQuestion() {
-        return new Question(id, reply, questionId, auctionId, userNickname, message);
+        return new Question(_id, reply, questionId, auctionId, userNickname, message);
     }
 
     @Override
     public String toString() {
-        return "QuestionsDAO{_rid=" + _rid + ", _ts=" + _ts + ", id=" + id + ", reply=" + reply + ", auctionId=" + auctionId + ", userNickname=" + userNickname + ", message=" + message + "}";
+        return "QuestionsDAO{_id=" + _id + ", reply=" + reply + ", auctionId=" + auctionId + ", userNickname=" + userNickname + ", message=" + message + "}";
     }
 }
