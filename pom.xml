@@ -91,6 +91,11 @@
       <artifactId>mongo-java-driver</artifactId>
       <version>3.4.1</version>
     </dependency>
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongodb-driver-sync</artifactId>
+      <version>4.8.0</version>
+    </dependency>
     <dependency> 
       <groupId>org.apache.logging.log4j</groupId>  
       <artifactId>log4j-core</artifactId>  

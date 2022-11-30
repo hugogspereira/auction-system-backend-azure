@@ -1,9 +1,12 @@
 package scc.layers;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import scc.dao.AuctionDAO;
 import scc.dao.BidDAO;
 import scc.dao.QuestionDAO;
@@ -16,6 +19,8 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static scc.utils.AzureProperties.*;
 
 public class MongoDBLayer implements DatabaseLayer {
@@ -56,7 +61,9 @@ public class MongoDBLayer implements DatabaseLayer {
 		if( db != null)
 			return;
 
-		db = client.getDatabase(DB_NAME);
+		CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), fromProviders(PojoCodecProvider.builder().automatic(true).build()));
+
+		db = client.getDatabase(DB_NAME).withCodecRegistry(pojoCodecRegistry);
 		users = db.getCollection(USERS, UserDAO.class);
 		auctions =  db.getCollection(AUCTIONS, AuctionDAO.class);
 		bids =  db.getCollection(BIDS, BidDAO.class);

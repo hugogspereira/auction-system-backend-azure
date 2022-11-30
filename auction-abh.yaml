@@ -67,7 +67,7 @@ spec:
       labels:
         app: mongo
     spec:
-      nodeSeletor:
+      nodeSelector:
         "kubernetes.io/os": linux
       containers:
         - name: mongo
@@ -114,7 +114,8 @@ spec:
     spec:
       containers:
         - name: auction-abh-back
-          image: scc2223-proj1-1.0        # image (needs to be on docker hub)
+          image: bcalvo/abh        # image (needs to be on docker hub)
+          imagePullPolicy: Always
           volumeMounts:
             - mountPath: "/mnt/vol"
               name: mediavolume
@@ -146,7 +147,8 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-    - port: 80
-      targetPort: 80
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
   selector:
     app: auction-abh-back

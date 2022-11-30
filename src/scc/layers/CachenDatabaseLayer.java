@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class CachenDatabaseLayer {
 
-	public static final boolean USE_COSMOSDB = true;	// false = use MongoDB
+	public static final boolean USE_COSMOSDB = false;	// false = use MongoDB
 
 	private final DatabaseLayer databaseLayer;
 	private final RedisCache redisCache;
@@ -34,7 +34,8 @@ public class CachenDatabaseLayer {
 	}
 
 	public CachenDatabaseLayer() {
-		this.databaseLayer = USE_COSMOSDB ? CosmosDBLayer.getInstance() : MongoDBLayer.getInstance();
+		//this.databaseLayer = USE_COSMOSDB ? CosmosDBLayer.getInstance() : MongoDBLayer.getInstance();
+		this.databaseLayer = MongoDBLayer.getInstance();
 		this.redisCache = RedisCache.getInstance();
 	}
 
