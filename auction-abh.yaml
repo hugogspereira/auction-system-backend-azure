@@ -124,10 +124,18 @@ spec:
           env:
             - name: "REDIS_URL"
               value: redis
+            - name: "REDIS_PORT"
+              value: "6379"
             - name: "MONGODB_DATABASE"
               value: mongodbabh
             - name: "MONGODB_HOSTNAME"
               value: mongo
+            - name: "MONGODB_PORT"
+              value: "27017"
+            - name: "MONGODB_USERNAME"
+              value: admin
+            - name: "MONGODB_PASSWORD"
+              value: abh
           resources:
             requests:
               cpu: 250m

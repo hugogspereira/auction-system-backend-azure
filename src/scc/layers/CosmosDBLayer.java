@@ -98,8 +98,8 @@ public class CosmosDBLayer implements DatabaseLayer {
 
 	public UserDAO replaceUser(UserDAO user) {
 		init();
-		PartitionKey key = new PartitionKey(user.get_id());
-		return users.replaceItem(user, user.get_id(), key, new CosmosItemRequestOptions()).getItem();
+		PartitionKey key = new PartitionKey(user.getId());
+		return users.replaceItem(user, user.getId(), key, new CosmosItemRequestOptions()).getItem();
 	}
 
 	// Auctions
@@ -120,8 +120,8 @@ public class CosmosDBLayer implements DatabaseLayer {
 
 	public AuctionDAO replaceAuction(AuctionDAO auction) {
 		init();
-		PartitionKey key = new PartitionKey(auction.get_id());
-		return auctions.replaceItem(auction, auction.get_id(), key, new CosmosItemRequestOptions()).getItem();
+		PartitionKey key = new PartitionKey(auction.getId());
+		return auctions.replaceItem(auction, auction.getId(), key, new CosmosItemRequestOptions()).getItem();
 	}
 
 	public List<AuctionDAO> getAuctionsByUser(String nickname) {
@@ -166,8 +166,8 @@ public class CosmosDBLayer implements DatabaseLayer {
 
 	public BidDAO replaceBid(BidDAO bid) {
 		init();
-		PartitionKey key = new PartitionKey(bid.get_id());
-		return bids.replaceItem(bid, bid.get_id(), key, new CosmosItemRequestOptions()).getItem();
+		PartitionKey key = new PartitionKey(bid.getId());
+		return bids.replaceItem(bid, bid.getId(), key, new CosmosItemRequestOptions()).getItem();
 	}
 
 	public QuestionDAO putQuestion(QuestionDAO question) {

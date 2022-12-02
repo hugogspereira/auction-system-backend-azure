@@ -9,7 +9,7 @@ public class AuctionDAO {
 
     //private String _rid;
     //private String _ts;
-    private String _id;
+    private String id;
     private String title;
     private String description;
     private String photoId;
@@ -27,10 +27,10 @@ public class AuctionDAO {
         this(a.getId(), a.getTitle(), a.getDescription(), a.getPhotoId(), a.getOwnerNickname(), a.getEndTime(), a.getMinPrice());
     }
 
-    public AuctionDAO(String _id, String title, String description, String photoId, String ownerNickname,
+    public AuctionDAO(String id, String title, String description, String photoId, String ownerNickname,
                       String endTime, float minPrice) {
         super();
-        this._id = _id;
+        this.id = id;
         this.title = title;
         this.description = description;
         this.photoId = photoId;
@@ -57,11 +57,11 @@ public class AuctionDAO {
     }
      */
 
-    public String get_id() {
-        return _id;
+    public String getId() {
+        return id;
     }
-    public void set_id(String _id) {
-        this._id = _id;
+    public void setId(String id) {
+        this.id = id;
     }
     public String getTitle() {
         return title;
@@ -113,7 +113,7 @@ public class AuctionDAO {
     }
 
     public Auction toAuction() {
-        return new Auction(status, _id, title, description, photoId, ownerNickname, endTime, minPrice, winnerBid);
+        return new Auction(status, id, title, description, photoId, ownerNickname, endTime, minPrice, winnerBid);
     }
 
     public float getWinningValue() {
@@ -135,7 +135,7 @@ public class AuctionDAO {
     @Override
     public String toString() {
         return "AuctionDAO{" +
-                "_id='" + _id + '\'' +
+                "_id='" + id + '\'' +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", photoId='" + photoId + '\'' +

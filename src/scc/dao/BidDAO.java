@@ -6,7 +6,7 @@ public class BidDAO {
 
     //private String _rid;
     //private String _ts;
-    private String _id;
+    private String id;
     private String auctionId;
     private String userNickname;
     private float value;
@@ -18,9 +18,9 @@ public class BidDAO {
         this(bid.getId(), bid.getAuctionId(), bid.getUserNickname(), bid.getValue());
     }
 
-    public BidDAO(String _id, String auctionId, String userNickname, float value) {
+    public BidDAO(String id, String auctionId, String userNickname, float value) {
         super();
-        this._id = _id;
+        this.id = id;
         this.auctionId = auctionId;
         this.userNickname = userNickname;
         this.value = value;
@@ -44,12 +44,12 @@ public class BidDAO {
     }
      */
 
-    public String get_id() {
-        return _id;
+    public String getId() {
+        return id;
     }
 
-    public void set_id(String _id) {
-        this._id = _id;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getAuctionId() {
@@ -77,13 +77,13 @@ public class BidDAO {
     }
 
     public Bid toBid() {
-        return new Bid(_id, auctionId, userNickname, value);
+        return new Bid(id, auctionId, userNickname, value);
     }
 
     @Override
     public String toString() {
         return "BidDAO{" +
-                "_id='" + _id + '\'' +
+                "_id='" + id + '\'' +
                 ", auctionId='" + auctionId + '\'' +
                 ", userNickname='" + userNickname + '\'' +
                 ", value=" + value +

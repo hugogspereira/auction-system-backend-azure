@@ -12,8 +12,12 @@ public class AzureProperties
 	public static final String COSMOSDB_DATABASE = "COSMOSDB_DATABASE";
 	public static final String MONGODB_HOSTNAME = "MONGODB_HOSTNAME";
 	public static final String MONGODB_DATABASE = "MONGODB_DATABASE";
+	public static final String MONGODB_PORT = "MONGODB_PORT";
+	public static final String MONGODB_USERNAME = "MONGODB_USERNAME";
+	public static final String MONGODB_PASSWORD = "MONGODB_PASSWORD";
 	public static final String REDIS_KEY = "REDIS_KEY";
 	public static final String REDIS_URL = "REDIS_URL";
+	public static final String REDIS_PORT = "REDIS_PORT";
 	public static final String COGNITIVESEARCH_QUERYKEY = "COGNITIVESEARCH_QUERYKEY";
 	public static final String COGNITIVESEARCH_URL = "COGNITIVESEARCH_URL";
 	public static final String COGNITIVESEARCH_INDEX = "COGNITIVESEARCH_INDEX";

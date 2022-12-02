@@ -1,7 +1,8 @@
 package scc.layers;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -31,8 +32,10 @@ public class MongoDBLayer implements DatabaseLayer {
 	private static final String QUESTIONS = "questions";
 
 	private static final String DB_HOSTNAME = System.getenv(MONGODB_HOSTNAME);
+	private static final String DB_PORT = System.getenv(MONGODB_PORT);
 	private static final String DB_NAME = System.getenv(MONGODB_DATABASE);
-
+	private static final String DB_USERNAME = System.getenv(MONGODB_USERNAME);
+	private static final String DB_PASSWORD = System.getenv(MONGODB_PASSWORD);
 
 	private static MongoDBLayer instance;
 
@@ -40,7 +43,9 @@ public class MongoDBLayer implements DatabaseLayer {
 		if(instance != null) {
 			return instance;
 		}
-		MongoClient client = new MongoClient(DB_HOSTNAME, 27017);		//TODO: porta em system.env
+		// mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]
+		String connectionUri = String.format("mongodb://%s:%s@%s:%s", DB_USERNAME, DB_PASSWORD, DB_HOSTNAME, DB_PORT);
+		MongoClient client = MongoClients.create(connectionUri);
 
 		instance = new MongoDBLayer(client);
 		return instance;
@@ -92,7 +97,7 @@ public class MongoDBLayer implements DatabaseLayer {
 	public UserDAO replaceUser(UserDAO user) {
 		init();
 
-		users.replaceOne(Filters.eq("_id",user.get_id()), user);
+		users.replaceOne(Filters.eq("_id",user.getId()), user);
 		return user;
 	}
 
@@ -119,7 +124,7 @@ public class MongoDBLayer implements DatabaseLayer {
 	public AuctionDAO replaceAuction(AuctionDAO auction) {
 		init();
 
-		auctions.replaceOne(Filters.eq("_id",auction.get_id()), auction);
+		auctions.replaceOne(Filters.eq("_id",auction.getId()), auction);
 		return auction;
 	}
 
@@ -163,7 +168,7 @@ public class MongoDBLayer implements DatabaseLayer {
 	public BidDAO replaceBid(BidDAO bid) {
 		init();
 
-		bids.replaceOne(Filters.eq("_id",bid.get_id()), bid);
+		bids.replaceOne(Filters.eq("_id",bid.getId()), bid);
 		return bid;
 	}
 

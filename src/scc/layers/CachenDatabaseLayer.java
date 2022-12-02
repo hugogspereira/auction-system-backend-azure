@@ -1,6 +1,5 @@
 package scc.layers;
 
-import com.azure.cosmos.CosmosException;
 import jakarta.ws.rs.WebApplicationException;
 import scc.cache.RedisCache;
 import scc.dao.AuctionDAO;
@@ -18,7 +17,7 @@ import java.util.List;
  */
 public class CachenDatabaseLayer {
 
-	public static final boolean USE_COSMOSDB = false;	// false = use MongoDB
+	//public static final boolean USE_COSMOSDB = false;	// false = use MongoDB
 
 	private final DatabaseLayer databaseLayer;
 	private final RedisCache redisCache;
@@ -50,8 +49,8 @@ public class CachenDatabaseLayer {
 			databaseLayer.putUser(userDao);
 			return user;
 		}
-		catch(CosmosException e) {
-			throw new WebApplicationException(e.getStatusCode());
+		catch(Exception e) {
+			throw new WebApplicationException(e);
 		}
 	}
 
@@ -59,6 +58,7 @@ public class CachenDatabaseLayer {
 		UserDAO userDao;
 		if(RedisCache.IS_ACTIVE ) {
 			userDao = redisCache.getUser(id);
+			System.out.println("cache user -> "+userDao);
 			if(userDao == null) {
 				userDao = databaseLayer.getUserById(id);
 				if(userDao != null) {
@@ -79,8 +79,8 @@ public class CachenDatabaseLayer {
 				redisCache.putUser(userDAO);
 			}
 		}
-		catch (CosmosException e) {
-			throw new WebApplicationException(e.getStatusCode());
+		catch (Exception e) {
+			throw new WebApplicationException(e);
 		}
 
 	}
@@ -92,8 +92,8 @@ public class CachenDatabaseLayer {
 				redisCache.deleteUser(nickname);
 			}
 		}
-		catch(CosmosException e) {
-			throw new WebApplicationException(e.getStatusCode());
+		catch(Exception e) {
+			throw new WebApplicationException(e);
 		}
 	}
 
@@ -108,8 +108,8 @@ public class CachenDatabaseLayer {
 			databaseLayer.putAuction(auctionDAO);
 			return auction;
 		}
-		catch(CosmosException e) {
-			throw new WebApplicationException(e.getStatusCode());
+		catch(Exception e) {
+			throw new WebApplicationException(e);
 		}
 	}
 
@@ -120,8 +120,8 @@ public class CachenDatabaseLayer {
 				redisCache.replaceAuction(auction);
 			}
 		}
-		catch (CosmosException e) {
-			throw new WebApplicationException(e.getStatusCode());
+		catch (Exception e) {
+			throw new WebApplicationException(e);
 		}
 	}
 
@@ -129,6 +129,7 @@ public class CachenDatabaseLayer {
 		AuctionDAO auctionDao;
 		if(RedisCache.IS_ACTIVE ) {
 			auctionDao = redisCache.getAuction(id);
+			System.out.println("cache auction -> "+auctionDao);
 			if(auctionDao == null) {
 				auctionDao = databaseLayer.getAuctionById(id);
 				if(auctionDao == null) { return null; }
@@ -154,8 +155,8 @@ public class CachenDatabaseLayer {
 			}
 			return bid;
 		}
-		catch(CosmosException e) {
-			throw new WebApplicationException(e.getStatusCode());
+		catch(Exception e) {
+			throw new WebApplicationException(e);
 		}
 	}
 
@@ -167,8 +168,8 @@ public class CachenDatabaseLayer {
 		try {
 			databaseLayer.replaceBid(bid);
 		}
-		catch (CosmosException e) {
-			throw new WebApplicationException(e.getStatusCode());
+		catch (Exception e) {
+			throw new WebApplicationException(e);
 		}
 	}
 

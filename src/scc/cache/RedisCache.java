@@ -9,12 +9,14 @@ import redis.clients.jedis.JedisPoolConfig;
 import scc.dao.AuctionDAO;
 import scc.dao.UserDAO;
 
+import static scc.utils.AzureProperties.REDIS_PORT;
 import static scc.utils.AzureProperties.REDIS_URL;
 
 public class RedisCache {
 
     public static final boolean IS_ACTIVE = true;
     private static final String RedisHostname = System.getenv(REDIS_URL);
+    private static final String RedisPort = System.getenv(REDIS_PORT);
 
     //private static final String RedisKey = System.getenv(REDIS_KEY);
 
@@ -47,7 +49,7 @@ public class RedisCache {
         poolConfig.setTestWhileIdle(true);
         poolConfig.setNumTestsPerEvictionRun(3);
         poolConfig.setBlockWhenExhausted(true);
-        instance = new JedisPool(poolConfig, RedisHostname, 6379, 1000);    //TODO: porta em system.env
+        instance = new JedisPool(poolConfig, RedisHostname, Integer.parseInt(RedisPort), 1000);
 
         return instance;
     }
@@ -66,8 +68,8 @@ public class RedisCache {
     public void putUser(UserDAO user) {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
-            jedis.set(USER_KEY+user.get_id(), mapper.writeValueAsString(user));
-            jedis.expire(USER_KEY+user.get_id(),DEFAULT_EXP_TIME);
+            jedis.set(USER_KEY+user.getId(), mapper.writeValueAsString(user));
+            jedis.expire(USER_KEY+user.getId(),DEFAULT_EXP_TIME);
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the user in cache.\n"+e.getMessage());
         }
@@ -103,8 +105,8 @@ public class RedisCache {
     public void putAuction(AuctionDAO auction) {
         ObjectMapper mapper = new ObjectMapper();
         try(Jedis jedis = instance.getResource()) {
-            jedis.set(AUCTION_KEY+auction.get_id(), mapper.writeValueAsString(auction));
-            jedis.expire(AUCTION_KEY+auction.get_id(),DEFAULT_EXP_TIME);
+            jedis.set(AUCTION_KEY+auction.getId(), mapper.writeValueAsString(auction));
+            jedis.expire(AUCTION_KEY+auction.getId(),DEFAULT_EXP_TIME);
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the auction in cache.\n"+e.getMessage());
         }
@@ -114,8 +116,8 @@ public class RedisCache {
         ObjectMapper mapper;
         try(Jedis jedis = instance.getResource()) {
             mapper = new ObjectMapper();
-            jedis.set(AUCTION_KEY+auction.get_id(), mapper.writeValueAsString(auction));
-            jedis.expire(AUCTION_KEY+auction.get_id(), DEFAULT_EXP_TIME);
+            jedis.set(AUCTION_KEY+auction.getId(), mapper.writeValueAsString(auction));
+            jedis.expire(AUCTION_KEY+auction.getId(), DEFAULT_EXP_TIME);
         } catch (JsonProcessingException e) {
             System.out.println("Redis Cache: unable to put the auction in cache.\n"+e.getMessage());
         }
