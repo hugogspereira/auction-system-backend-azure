@@ -139,10 +139,9 @@ public class MongoDBLayer implements DatabaseLayer {
 
 		LocalDate now = LocalDate.now(ZoneId.systemDefault());
 		LocalDateTime beginNow = LocalDateTime.of(now.getYear(), now.getMonth(), now.getDayOfMonth(), 0, 0, 0);
-		LocalDateTime endNow = LocalDateTime.of(now.getYear(), now.getMonth(), now.getDayOfMonth(), 23, 59, 59);
+		LocalDateTime endNow = beginNow.plusDays(1);
 
-		//TODO Filters.where?
-		return auctions.find(Filters.and( Filters.gt("endTime", beginNow.toString()), Filters.lt("endTime",endNow.toString()) ), AuctionDAO.class).filter(Filters.eq("status", AuctionStatus.OPEN)).into(new ArrayList<>());
+		return auctions.find(Filters.and( Filters.gte("endTime", beginNow.toString()), Filters.lt("endTime",endNow.toString()), Filters.eq("status", AuctionStatus.OPEN)), AuctionDAO.class).into(new ArrayList<>());
 	}
 
 	// Bids
