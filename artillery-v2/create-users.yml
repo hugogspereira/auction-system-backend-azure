@@ -1,24 +1,23 @@
 config:
-  target: "http://20.103.235.204/scc2223-proj1-1.0/rest"
+  # target: "TYPE HERE THE DEPLOYED TARGET"
+  target: "http://localhost:8080/scc2223-proj1-1.0/rest"
   http:
-    timeout: 30
+    timeout: 10
   plugins:
     metrics-by-endpoint:
       useOnlyRequestNames: true # new mode to aggregate metrics in artillery
   processor: "./test-utils.js"
-  variables:
-    numUsers: 100
   phases:
-    - name: "Create users"
-      arrivalRate: 1
+    - name: "Create users" # Create users
       duration: 1
+      arrivalCount: 1
 
 scenarios:
   - name: "Create users"
     weight: 1
     flow:
       - loop:
-          - post: # First post image for the user
+          - post: # First: post image for the user
               url: "/media"
               headers:
                 Content-Type: application/octet-stream
@@ -40,4 +39,4 @@ scenarios:
                 pwd: "{{ pwd }}"
                 photoId: "{{ imageId }}"
               afterResponse: "processNewUserReply" # capture result and store in file
-        count: "{{ numUsers }}"
+        count: 10 # 10 users

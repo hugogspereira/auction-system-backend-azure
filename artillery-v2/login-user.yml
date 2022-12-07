@@ -1,0 +1,35 @@
+#THIS IS A TEST TO 
+config:
+  # target: "TYPE HERE THE DEPLOYED TARGET"
+  target: "http://localhost:8080/scc2223-proj1-1.0/rest"
+  http:
+    timeout: 10
+  plugins:
+    metrics-by-endpoint:
+      useOnlyRequestNames: true # new mode to aggregate metrics in artillery
+  processor: "./test-utils.js"
+  phases:
+    - name: "Login user" # Login user and save cookie test
+      duration: 1
+      arrivalCount: 1
+
+scenarios:
+  - name: "Login user"
+    weight: 1
+    flow:
+      - loop:
+          - function: "selectUserToLogin" # Select a user to login
+          - post:
+              url: "/user/auth"
+              headers:
+                Content-Type: application/json
+                Accept: application/json
+              json:
+                nickname: "{{ nickname }}"
+                pwd: "{{ pwd }}"
+              capture:
+                header: "set-cookie"
+                as: "cookie"
+          # log the cookie
+          - log: "this is the cookie: {{ cookie[0] }}"
+        count: 1

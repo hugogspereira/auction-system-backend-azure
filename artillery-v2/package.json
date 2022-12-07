@@ -1,0 +1,30 @@
+{
+  "name": "artillery-tests",
+  "version": "1.0.0",
+  "description": "tests for the Azure Cloud project for SCC",
+  "main": "test-utils.js",
+  "scripts": {
+    "create-users": "artillery run create-users.yml",
+    "create-auctions": "artillery run create-auctions.yml",
+    "create-bids": "artillery run create-bids.yml",
+    "create-questions": "artillery run create-questions.yml",
+    "update-users": "artillery run update-users.yml",
+    "delete-users": "artillery run delete-users.yml",
+    "clean": "node cleanDisk.js",
+    "create-all": "npm run create-users && npm run create-auctions && npm run create-bids && npm run create-questions && npm run clean",
+    "create-all-noclean": "npm run create-users && npm run create-auctions && npm run create-bids && npm run create-questions",
+    "test-users": "npm run create-users && npm run update-users && npm run delete-users && npm run clean",
+    "workload0": "artillery run workload0.yml",
+    "workload1": "artillery run workload1.yml",
+    "workload2": "artillery run workload2.yml",
+    "workload": "npm run workload0 && npm run workload1 && npm run workload2"
+  },
+  "author": "Pipa",
+  "license": "ISC",
+  "dependencies": {
+    "@faker-js/faker": "^7.6.0",
+    "artillery": "^2.0.0-24",
+    "artillery-plugin-metrics-by-endpoint": "github:preguica/artillery-plugin-metrics-by-endpoint",
+    "node-fetch": "^3.2.10"
+  }
+}

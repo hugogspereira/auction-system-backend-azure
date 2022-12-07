@@ -1,0 +1,45 @@
+config:
+  # target: "TYPE HERE THE DEPLOYED TARGET"
+  target: "http://localhost:8080/scc2223-proj1-1.0/rest"
+  http:
+    timeout: 10
+  plugins:
+    metrics-by-endpoint:
+      useOnlyRequestNames: true # new mode to aggregate metrics in artillery
+  processor: "./test-utils.js"
+  phases:
+    - name: "Delete users" # Delete users
+      duration: 1
+      arrivalCount: 1
+
+scenarios:
+  - name: "Delete users"
+    weight: 1
+    flow:
+      - loop:
+          - function: selectUserToLogin # function used to select a user to login
+          - post:
+              url: "/user/auth"
+              headers:
+                Content-Type: application/json
+                Accept: application/json
+              json:
+                nickname: "{{ nickname }}"
+                pwd: "{{ pwd }}"
+              capture:
+                header: "set-cookie"
+                as: "cookie"
+            # log the cookie
+          - log: "this is the cookie: {{ cookie[0] }}"
+          - delete:
+              url: "/user/{{nickname}}"
+              headers:
+                Content-Type: application/json
+                Accept: application/json
+                Cookie: "{{ cookie[0] }}"
+              qs:
+                password: "{{ pwd }}"
+              afterResponse: "processDeleteUserReply" # capture result and store in file
+              expect:
+                - statusCode: 200
+        count: 3 # number of users deleted

@@ -1,0 +1,55 @@
+config:
+  # target: "TYPE HERE THE DEPLOYED TARGET"
+  target: "http://localhost:8080/scc2223-proj1-1.0/rest"
+  http:
+    timeout: 10
+  plugins:
+    metrics-by-endpoint:
+      useOnlyRequestNames: true # new mode to aggregate metrics in artillery
+  processor: "./test-utils.js"
+  phases:
+    - name: "Create auctions"
+      arrivalRate: 1
+      duration: 1
+
+before:
+  flow:
+    - function: "selectUserToLogin"
+    - post:
+        url: "/user/auth"
+        headers:
+          Content-Type: application/json
+          Accept: application/json
+        json:
+          nickname: "{{ nickname }}"
+          pwd: "{{ pwd }}"
+        capture:
+          header: "set-cookie"
+          as: "cookie"
+    # log the cookie
+    - log: "this is the cookie: {{ cookie[0] }}"
+
+scenarios:
+  - name: "Create auctions"
+    weight: 1
+    flow:
+      - loop:
+          - function: "selectImageId" # Select an image to use in the auction
+          - function: "genNewAuction" # Generate the needed information for the auction
+          - post:
+              url: "/auction"
+              headers:
+                Content-Type: application/json
+                Accept: application/json
+                Cookie: "{{ cookie[0] }}"
+              json:
+                title: "{{ title }}"
+                description: "{{ description }}"
+                photoId: "{{ imageId }}"
+                ownerNickname: "{{ nickname }}"
+                endTime: "{{ endTime }}"
+                minPrice: "{{ minPrice }}"
+              afterResponse: "processNewAuctionReply" # capture result and store in file
+              expect:
+                - statusCode: 200
+        count: 10 # number of auctions to create

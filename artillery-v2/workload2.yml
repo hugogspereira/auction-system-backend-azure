@@ -1,7 +1,7 @@
 #ONLY RUN THIS TEST AFTER RUNNING WORKLOAD0 AND WORKLOAD1
 #YOU CAN RUN 'npm run workload' to run all 3 workloads sequentially
 config:
-  target: "http://20.103.235.204/scc2223-proj1-1.0/rest"
+  target: "http://20.101.0.189/scc2223-proj1-1.0/rest"
   # target: "http://localhost:8080/scc2223-proj1-1.0/rest"
   http:
     timeout: 10
@@ -34,10 +34,12 @@ scenarios:
           capture:
             header: "set-cookie"
             as: "cookie"
-      - function: "selectWordToSearch"
       - get:
-          url: "/auction/search?query={{searchWord}}"
-          afterResponse: "processSearchReply"
+          url: "/auction"
+          name: "GET:/auction/"
+          headers:
+            Cookie: "{{ cookie }}"
+          afterResponse: "processListAuctionsReply"
       - function: "genNewBid" # Generate the needed information for the bid
       - post:
           url: "/auction/{{auctionId}}/bid"
@@ -79,6 +81,18 @@ scenarios:
           capture:
             header: "set-cookie"
             as: "cookie"
+      - function: "genUserUpdate" # function used to generate a user update
+      - put:
+          url: "/user/{{nickname}}?password={{pwd}}"
+          name: "PUT:/user/{{nickname}}"
+          headers:
+            Content-Type: application/json
+            Accept: application/json
+            Cookie: "{{ cookie[0] }}"
+          json:
+            name: "{{ name }}"
+            pwd: "{{ pwd }}"
+            photoId: "{{ photoId }}"
       - function: "genUserUpdate" # function used to generate a user update
       - put:
           url: "/user/{{nickname}}?password={{pwd}}"
@@ -172,11 +186,34 @@ scenarios:
           name: "GET:/media"
           headers:
             Accept: application/octet-stream
-      - function: "selectWordToSearch"
       - get:
-          url: "/auction/search?query={{searchWord}}"
-          name: "GET:/auction/search"
-          afterResponse: "processSearchReply"
+          url: "/auction"
+          name: "GET:/auction/"
+          headers:
+            Cookie: "{{ cookie }}"
+          afterResponse: "processListAuctionsReply"
+      - function: "genNewQuestion" # Generate the needed information for the question
+      - post:
+          url: "/auction/{{auctionId}}/question"
+          name: "POST:/auction/{{auctionId}}/question"
+          headers:
+            Content-Type: application/json
+            Accept: application/json
+            Cookie: "{{ cookie[0] }}"
+          json:
+            userNickname: "{{ nickname }}"
+            message: "{{ question }}"
+      - function: "genNewBid" # Generate the needed information for the bid
+      - post:
+          url: "/auction/{{auctionId}}/bid"
+          name: "POST:/auction/{{auctionId}}/bid"
+          headers:
+            Content-Type: application/json
+            Accept: application/json
+            Cookie: "{{ cookie[0] }}"
+          json:
+            userNickname: "{{ nickname }}"
+            value: "{{ value }}"
       - function: "genNewQuestion" # Generate the needed information for the question
       - post:
           url: "/auction/{{auctionId}}/question"
