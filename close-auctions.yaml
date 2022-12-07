@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: close-auctions
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: close-auctions
+            image: bcalvo/functions-abh
+            imagePullPolicy: Always
+            env:
+              - name: "REDIS_URL"
+                value: redis
+              - name: "REDIS_PORT"
+                value: "6379"
+              - name: "MONGODB_DATABASE"
+                value: mongodbabh
+              - name: "MONGODB_HOSTNAME"
+                value: mongo
+              - name: "MONGODB_PORT"
+                value: "27017"
+              - name: "MONGODB_USERNAME"
+                value: admin
+              - name: "MONGODB_PASSWORD"
+                value: abh
+          restartPolicy: OnFailure
