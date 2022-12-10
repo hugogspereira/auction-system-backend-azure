@@ -6,3 +6,6 @@ artillery-tests/node_modules/
 artillery-tests/*.data
 artillery-v2/node_modules/
 artillery-v2/*.data
+artillery-v2/.vscode/
+docker-compose.yaml
+run.sh

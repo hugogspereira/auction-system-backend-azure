@@ -1,5 +1,5 @@
 config:
-  target: "http://20.101.0.189/scc2223-proj1-1.0/rest"
+  target: "http://20.220.154.200/scc2223-proj1-1.0/rest"
   #target: "http://localhost:8080/scc2223-proj1-1.0/rest"
   http:
     timeout: 10
